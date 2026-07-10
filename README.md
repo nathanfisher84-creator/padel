@@ -80,6 +80,33 @@ See [`.env.example`](.env.example) for the full list:
 | `STRIPE_WEBHOOK_SECRET` | Signing secret for `/api/stripe/webhook` |
 | `UPLOAD_DIR` | Where uploaded videos are stored (default `./uploads`) |
 
+## Deploying to Vercel
+
+The repo is Vercel-ready. Because Vercel is serverless (no persistent disk,
+~4.5 MB request-body limit), the app automatically switches storage backends
+there: Postgres instead of SQLite, and Vercel Blob with direct browser uploads
+instead of local disk.
+
+1. Push this repo to GitHub (already done) and sign in at
+   [vercel.com](https://vercel.com) with your GitHub account.
+2. **Add New → Project**, import the `padel` repository. Vercel detects
+   Next.js and uses the `vercel-build` script automatically (it generates the
+   Prisma client from `prisma/schema.postgres.prisma`, creates the tables, and
+   seeds the demo accounts on every deploy).
+3. Before the first deploy, open the project's **Storage** tab and create:
+   - a **Postgres database** (Neon, free tier) — this sets `DATABASE_URL`;
+   - a **Blob store** (free tier) — this sets `BLOB_READ_WRITE_TOKEN`.
+4. In **Settings → Environment Variables**, add `AUTH_SECRET`
+   (any long random string, e.g. from `openssl rand -base64 32`) and
+   optionally `PLATFORM_FEE_PERCENT`.
+5. Deploy. You'll get a public `https://<project>.vercel.app` URL with the
+   demo accounts ready to log in.
+
+Notes for the Vercel setup: uploaded videos are stored in Vercel Blob at
+unguessable URLs; the app checks authorisation and then redirects the player
+or coach to the file. For Stripe, set `APP_URL` to your Vercel URL so the
+Checkout redirects land in the right place.
+
 ## Enabling real payments
 
 1. Create a [Stripe](https://dashboard.stripe.com) account and set

@@ -2,14 +2,18 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 
 export function UploadForm({
   coaches,
+  useBlobStorage,
 }: {
   coaches: { id: string; name: string }[];
+  useBlobStorage: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -17,15 +21,42 @@ export function UploadForm({
     setBusy(true);
     setError(null);
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/videos", { method: "POST", body: form });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
+    try {
+      const res = useBlobStorage
+        ? await submitViaBlob(form)
+        : await fetch("/api/videos", { method: "POST", body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Upload failed. Please try again.");
       router.push(`/submissions/${data.id}`);
       router.refresh();
-    } else {
-      setError(data.error ?? "Upload failed. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed. Please try again.");
       setBusy(false);
+      setProgress(null);
     }
+  }
+
+  /** Browser → Blob storage directly, then register the submission. */
+  async function submitViaBlob(form: FormData): Promise<Response> {
+    const file = form.get("video") as File;
+    const coachId = String(form.get("coachId"));
+    const blob = await upload(file.name, file, {
+      access: "public",
+      handleUploadUrl: "/api/videos/upload-token",
+      clientPayload: JSON.stringify({ coachId }),
+      onUploadProgress: ({ percentage }) => setProgress(Math.round(percentage)),
+    });
+    setProgress(null);
+    return fetch("/api/videos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        coachId,
+        title: form.get("title"),
+        notes: form.get("notes") || undefined,
+        videoUrl: blob.url,
+      }),
+    });
   }
 
   return (
@@ -75,7 +106,11 @@ export function UploadForm({
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button className="btn-primary w-full" disabled={busy}>
-        {busy ? "Uploading…" : "Send to coach"}
+        {busy
+          ? progress !== null
+            ? `Uploading… ${progress}%`
+            : "Uploading…"
+          : "Send to coach"}
       </button>
     </form>
   );

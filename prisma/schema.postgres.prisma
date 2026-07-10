@@ -1,0 +1,111 @@
+// PostgreSQL variant of the schema, used for production deploys (Vercel).
+// Keep the models in sync with prisma/schema.prisma (the SQLite dev schema) —
+// only the datasource provider differs. The `vercel-build` script in
+// package.json points Prisma at this file.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String // PLAYER | COACH | ADMIN
+  createdAt    DateTime @default(now())
+
+  coachProfile       CoachProfile?
+  paymentsMade       Payment[]         @relation("PlayerPayments")
+  paymentsReceived   Payment[]         @relation("CoachPayments")
+  subscriptions      Subscription[]    @relation("PlayerSubscriptions")
+  coachSubscriptions Subscription[]    @relation("CoachSubscriptions")
+  submissions        VideoSubmission[] @relation("PlayerSubmissions")
+  reviewQueue        VideoSubmission[] @relation("CoachSubmissions")
+}
+
+model CoachProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline          String
+  bio               String
+  location          String?
+  experienceYears   Int      @default(0)
+  photoUrl          String?
+  // Each coach sets their own rates (stored in minor units, e.g. cents).
+  oneOffPriceCents  Int
+  monthlyPriceCents Int
+  monthlyVideoLimit Int      @default(4)
+  currency          String   @default("EUR")
+  isPublished       Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Subscription {
+  id               String    @id @default(cuid())
+  playerId         String
+  player           User      @relation("PlayerSubscriptions", fields: [playerId], references: [id], onDelete: Cascade)
+  coachId          String
+  coach            User      @relation("CoachSubscriptions", fields: [coachId], references: [id], onDelete: Cascade)
+  status           String // ACTIVE | CANCELED
+  currentPeriodEnd DateTime
+  stripeSubId      String?
+  createdAt        DateTime  @default(now())
+  payments         Payment[]
+
+  @@unique([playerId, coachId])
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  playerId         String
+  player           User          @relation("PlayerPayments", fields: [playerId], references: [id], onDelete: Cascade)
+  coachId          String
+  coach            User          @relation("CoachPayments", fields: [coachId], references: [id], onDelete: Cascade)
+  kind             String // ONE_OFF | SUBSCRIPTION_CYCLE
+  amountCents      Int
+  // Revenue split, computed at payment time from PLATFORM_FEE_PERCENT.
+  platformFeeCents Int
+  coachCents       Int
+  currency         String
+  status           String // PENDING | PAID | FAILED
+  stripeRef        String?
+  subscriptionId   String?
+  subscription     Subscription? @relation(fields: [subscriptionId], references: [id])
+  createdAt        DateTime      @default(now())
+
+  submission VideoSubmission?
+}
+
+model VideoSubmission {
+  id        String   @id @default(cuid())
+  playerId  String
+  player    User     @relation("PlayerSubmissions", fields: [playerId], references: [id], onDelete: Cascade)
+  coachId   String
+  coach     User     @relation("CoachSubmissions", fields: [coachId], references: [id], onDelete: Cascade)
+  title     String
+  notes     String?
+  videoPath String
+  status    String // AWAITING_FEEDBACK | REVIEWED
+  // Set when the submission consumed a one-off review credit.
+  paymentId String?  @unique
+  payment   Payment? @relation(fields: [paymentId], references: [id])
+  createdAt DateTime @default(now())
+
+  feedback Feedback?
+}
+
+model Feedback {
+  id           String          @id @default(cuid())
+  submissionId String          @unique
+  submission   VideoSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  content      String
+  createdAt    DateTime        @default(now())
+}

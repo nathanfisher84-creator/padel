@@ -8,10 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "setup": "prisma generate && prisma db push && prisma db seed",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate --schema prisma/schema.postgres.prisma && prisma db push --schema prisma/schema.postgres.prisma && prisma db seed && next build"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@vercel/blob": "^2.6.1",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
     "next": "14.2.35",

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { getEntitlements } from "@/lib/entitlements";
 import { Role } from "@/lib/constants";
+import { blobUploadsEnabled } from "@/lib/storage";
 import { UploadForm } from "@/components/UploadForm";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,7 @@ export default async function UploadPage() {
       ) : (
         <UploadForm
           coaches={coaches.map((e) => ({ id: e.coachId, name: e.coachName }))}
+          useBlobStorage={blobUploadsEnabled()}
         />
       )}
     </div>

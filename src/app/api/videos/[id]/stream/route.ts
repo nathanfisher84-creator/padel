@@ -43,6 +43,13 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Blob-stored videos (Vercel) live at an unguessable CDN URL; after the
+  // access check above, hand the browser off to it rather than proxying
+  // hundreds of megabytes through a serverless function.
+  if (submission.videoPath.startsWith("https://")) {
+    return NextResponse.redirect(submission.videoPath);
+  }
+
   // videoPath is a server-generated UUID filename; resolve defensively anyway.
   const filePath = path.join(uploadDir(), path.basename(submission.videoPath));
   try {
