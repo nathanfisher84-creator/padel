@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripeEnabled, platformFeePercent } from "@/lib/config";
+import { blobUploadsEnabled, blobTokenVarName } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,8 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       db: "connected",
-      videoStorage: process.env.BLOB_READ_WRITE_TOKEN ? "vercel-blob" : "local-disk",
+      videoStorage: blobUploadsEnabled() ? "vercel-blob" : "local-disk",
+      blobTokenVar: blobTokenVarName(),
       payments: stripeEnabled() ? "stripe" : "demo",
       platformFeePercent: platformFeePercent(),
       counts: { users, coaches, payments },

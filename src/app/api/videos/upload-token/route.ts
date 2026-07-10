@@ -3,7 +3,7 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { getSession } from "@/lib/auth";
 import { getEntitlementForCoach } from "@/lib/entitlements";
 import { Role } from "@/lib/constants";
-import { MAX_VIDEO_BYTES, VIDEO_CONTENT_TYPES } from "@/lib/storage";
+import { MAX_VIDEO_BYTES, VIDEO_CONTENT_TYPES, blobToken } from "@/lib/storage";
 
 /**
  * Issues short-lived tokens for direct browser-to-Vercel-Blob uploads
@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const jsonResponse = await handleUpload({
       body,
       request,
+      token: blobToken(),
       onBeforeGenerateToken: async (_pathname, clientPayload) => {
         const session = await getSession();
         if (!session || session.role !== Role.PLAYER) {
