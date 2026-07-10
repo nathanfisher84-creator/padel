@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripeEnabled, platformFeePercent } from "@/lib/config";
-import { blobUploadsEnabled, blobTokenVarName } from "@/lib/storage";
+import { blobUploadsEnabled, blobAuthMode, blobTokenVarName } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +21,13 @@ export async function GET() {
       ok: true,
       db: "connected",
       videoStorage: blobUploadsEnabled() ? "vercel-blob" : "local-disk",
+      blobAuth: blobAuthMode(),
       blobTokenVar: blobTokenVarName(),
+      oidcTokenPresent: Boolean(process.env.VERCEL_OIDC_TOKEN),
       // Names only (never values): which storage-related env vars Vercel
       // injected into this deployment — diagnoses store-connection issues.
       storageEnvVars: Object.keys(process.env)
-        .filter((k) => /BLOB|_READ_WRITE_TOKEN|DATABASE|POSTGRES|NEON/i.test(k))
+        .filter((k) => /BLOB|_READ_WRITE_TOKEN|DATABASE|POSTGRES|NEON|OIDC/i.test(k))
         .sort(),
       payments: stripeEnabled() ? "stripe" : "demo",
       platformFeePercent: platformFeePercent(),

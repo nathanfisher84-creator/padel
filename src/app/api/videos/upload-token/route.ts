@@ -17,6 +17,8 @@ export async function POST(request: Request) {
     const jsonResponse = await handleUpload({
       body,
       request,
+      // Explicit token if one is configured; otherwise undefined lets the
+      // SDK fall back to OIDC (VERCEL_OIDC_TOKEN + BLOB_STORE_ID).
       token: blobToken(),
       onBeforeGenerateToken: async (_pathname, clientPayload) => {
         const session = await getSession();
