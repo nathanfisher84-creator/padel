@@ -22,6 +22,11 @@ export async function GET() {
       db: "connected",
       videoStorage: blobUploadsEnabled() ? "vercel-blob" : "local-disk",
       blobTokenVar: blobTokenVarName(),
+      // Names only (never values): which storage-related env vars Vercel
+      // injected into this deployment — diagnoses store-connection issues.
+      storageEnvVars: Object.keys(process.env)
+        .filter((k) => /BLOB|_READ_WRITE_TOKEN|DATABASE|POSTGRES|NEON/i.test(k))
+        .sort(),
       payments: stripeEnabled() ? "stripe" : "demo",
       platformFeePercent: platformFeePercent(),
       counts: { users, coaches, payments },
