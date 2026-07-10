@@ -10,8 +10,34 @@
 //    request bodies are capped at ~4.5 MB — and the submission stores the
 //    blob URL.
 
+/**
+ * Find the Blob read-write token, whatever the env var is called. Vercel
+ * names it BLOB_READ_WRITE_TOKEN by default, but connecting a store with a
+ * custom "environment variables prefix" produces e.g.
+ * PADEL_BLOB_READ_WRITE_TOKEN — accept any *_READ_WRITE_TOKEN that holds a
+ * Vercel Blob token.
+ */
+export function blobToken(): string | undefined {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return process.env.BLOB_READ_WRITE_TOKEN;
+  const entry = Object.entries(process.env).find(
+    ([key, value]) =>
+      key.endsWith("_READ_WRITE_TOKEN") && value?.startsWith("vercel_blob_rw_")
+  );
+  return entry?.[1];
+}
+
+/** Name of the env var the Blob token was found under (for diagnostics). */
+export function blobTokenVarName(): string | null {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return "BLOB_READ_WRITE_TOKEN";
+  const entry = Object.entries(process.env).find(
+    ([key, value]) =>
+      key.endsWith("_READ_WRITE_TOKEN") && value?.startsWith("vercel_blob_rw_")
+  );
+  return entry?.[0] ?? null;
+}
+
 export function blobUploadsEnabled(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(blobToken());
 }
 
 export const VIDEO_CONTENT_TYPES = [
