@@ -107,6 +107,12 @@ unguessable URLs; the app checks authorisation and then redirects the player
 or coach to the file. For Stripe, set `APP_URL` to your Vercel URL so the
 Checkout redirects land in the right place.
 
+### Checking a deployment
+
+`GET /api/health` reports database connectivity, the active video-storage
+backend (`vercel-blob` or `local-disk`), payment mode (`stripe` or `demo`)
+and the configured platform fee — a one-request smoke test after any deploy.
+
 ## Enabling real payments
 
 1. Create a [Stripe](https://dashboard.stripe.com) account and set
