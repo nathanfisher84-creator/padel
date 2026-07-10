@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripeEnabled, platformFeePercent } from "@/lib/config";
-import { blobUploadsEnabled, blobAuthMode, blobTokenVarName } from "@/lib/storage";
+import {
+  blobUploadsEnabled,
+  blobAuthMode,
+  blobToken,
+  blobTokenVarName,
+} from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +15,28 @@ export const dynamic = "force-dynamic";
  * which storage/payment backends this environment is running with.
  * Used to smoke-test Vercel deployments (and anything else) quickly.
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // ?blobtest=1: prove Blob write auth end-to-end with a tiny put+delete.
+    let blobWrite: string | undefined;
+    if (new URL(req.url).searchParams.get("blobtest") === "1") {
+      if (!blobUploadsEnabled()) {
+        blobWrite = "skipped: blob not configured";
+      } else {
+        try {
+          const { put, del } = await import("@vercel/blob");
+          const blob = await put("healthcheck/ping.txt", "padel healthcheck", {
+            access: "public",
+            addRandomSuffix: true,
+            token: blobToken(),
+          });
+          await del(blob.url, { token: blobToken() });
+          blobWrite = "ok";
+        } catch (e) {
+          blobWrite = `error: ${e instanceof Error ? e.message : "unknown"}`;
+        }
+      }
+    }
     const [users, coaches, payments] = await Promise.all([
       db.user.count(),
       db.coachProfile.count(),
@@ -24,6 +49,7 @@ export async function GET() {
       blobAuth: blobAuthMode(),
       blobTokenVar: blobTokenVarName(),
       oidcTokenPresent: Boolean(process.env.VERCEL_OIDC_TOKEN),
+      ...(blobWrite !== undefined ? { blobWrite } : {}),
       // Names only (never values): which storage-related env vars Vercel
       // injected into this deployment — diagnoses store-connection issues.
       storageEnvVars: Object.keys(process.env)
