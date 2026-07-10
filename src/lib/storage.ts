@@ -36,8 +36,20 @@ export function blobTokenVarName(): string | null {
   return entry?.[0] ?? null;
 }
 
+/**
+ * Blob is usable with either auth mode:
+ *  - a static read-write token (legacy; any env-var prefix), or
+ *  - OIDC: connecting a store injects BLOB_STORE_ID and the SDK
+ *    authenticates with the deployment's VERCEL_OIDC_TOKEN automatically.
+ */
+export function blobAuthMode(): "rw-token" | "oidc" | null {
+  if (blobToken()) return "rw-token";
+  if (process.env.BLOB_STORE_ID) return "oidc";
+  return null;
+}
+
 export function blobUploadsEnabled(): boolean {
-  return Boolean(blobToken());
+  return blobAuthMode() !== null;
 }
 
 export const VIDEO_CONTENT_TYPES = [
