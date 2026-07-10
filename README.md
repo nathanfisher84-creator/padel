@@ -1,0 +1,124 @@
+# PadelPro Coaching 🎾
+
+A marketplace connecting padel players with professional coaches for **video-based
+coaching**. Players upload match or training videos and receive personal written
+feedback from the coach of their choice.
+
+Built as a responsive web app (works great on mobile) with a JSON API that can
+also power a future native mobile app.
+
+## How the business works
+
+- **Coaches join free** and create a public profile with their bio, experience
+  and — crucially — **their own rates**:
+  - a **one-off price** for a single video review
+  - a **monthly subscription price** (includes up to N video reviews per month,
+    also set by the coach)
+- **Players** browse coaches, then pay either a one-off fee or subscribe monthly
+  to the coach they choose.
+- **Every payment is split automatically** between the platform owner and the
+  coach. The platform's cut is configurable via `PLATFORM_FEE_PERCENT`
+  (default **20%** — the coach keeps 80%). Every payment row in the database
+  stores the exact split, giving you a full earnings ledger per coach and for
+  the platform.
+
+## Features
+
+| Role | What they can do |
+| --- | --- |
+| **Player** | Register free · browse coaches · buy a one-off review or monthly plan · upload videos (MP4/MOV/WEBM/AVI, up to 500 MB) · receive written feedback |
+| **Coach** | Register free · manage public profile & pricing · review queue of submitted videos · watch videos & send feedback · see earnings (after platform fee) and active subscriber count |
+| **Admin (owner)** | Platform dashboard: gross revenue, platform earnings, coach payouts, user/submission counts, full payment ledger |
+
+## Tech stack
+
+- [Next.js 14](https://nextjs.org) (App Router) + TypeScript + Tailwind CSS
+- [Prisma](https://prisma.io) ORM — SQLite in development, switch to PostgreSQL
+  for production by changing the datasource provider
+- JWT session cookies (`jose`) + bcrypt password hashing
+- [Stripe](https://stripe.com) Checkout for one-off payments **and** monthly
+  subscriptions, fulfilled via webhook — with a built-in **demo mode** when no
+  Stripe keys are configured, so the entire flow works locally without a Stripe
+  account
+- Video files stored on local disk (`UPLOAD_DIR`), streamed through an
+  authorised API route — only the player, their coach and admins can watch
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env        # then edit AUTH_SECRET etc.
+npm run setup               # creates the SQLite DB and seeds demo data
+npm run dev                 # http://localhost:3000
+```
+
+### Demo accounts (password: `password123`)
+
+| Account | Email |
+| --- | --- |
+| Player | `player@padelpro.local` |
+| Coach (Madrid) | `carlos@padelpro.local` |
+| Coach (Stockholm) | `sofia@padelpro.local` |
+| Coach (Buenos Aires) | `diego@padelpro.local` |
+| Admin / owner | `admin@padelpro.local` |
+
+Without Stripe keys the app runs in **demo payment mode**: clicking
+“Buy one video review” or “Subscribe monthly” completes instantly so you can
+try the full player → upload → coach feedback loop.
+
+## Environment variables
+
+See [`.env.example`](.env.example) for the full list:
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Prisma connection string (SQLite file by default) |
+| `AUTH_SECRET` | Secret for signing session cookies |
+| `APP_URL` | Public URL, used in Stripe redirect URLs |
+| `PLATFORM_FEE_PERCENT` | Owner's cut of every payment (default 20) |
+| `STRIPE_SECRET_KEY` | Enables real Stripe Checkout (optional) |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret for `/api/stripe/webhook` |
+| `UPLOAD_DIR` | Where uploaded videos are stored (default `./uploads`) |
+
+## Enabling real payments
+
+1. Create a [Stripe](https://dashboard.stripe.com) account and set
+   `STRIPE_SECRET_KEY` in `.env`.
+2. Add a webhook endpoint in the Stripe dashboard pointing at
+   `https://your-domain/api/stripe/webhook`, subscribed to
+   `checkout.session.completed` and `invoice.payment_succeeded`, and set
+   `STRIPE_WEBHOOK_SECRET`.
+3. Payments now go through Stripe Checkout; monthly renewals are recorded
+   automatically with the same platform/coach revenue split.
+
+> **Paying coaches out:** the app keeps an exact per-coach earnings ledger
+> (`Payment.coachCents`). For automated payouts, the natural next step is
+> [Stripe Connect](https://stripe.com/connect) — onboard each coach as a
+> connected account and pay their share out on a schedule. Until then, coach
+> balances are visible in the coach dashboard and admin ledger for manual
+> payouts.
+
+## Project structure
+
+```
+prisma/schema.prisma        Data model (users, profiles, payments, subscriptions,
+                            submissions, feedback)
+prisma/seed.ts              Demo data
+src/lib/                    Auth, entitlements, revenue split, Stripe helpers
+src/app/api/                JSON API (auth, checkout, webhook, videos, feedback)
+src/app/                    Pages: landing, coach browsing, dashboards, submissions
+src/components/             Client components (forms, purchase panel, nav)
+```
+
+## API overview (for a future mobile app)
+
+| Endpoint | Description |
+| --- | --- |
+| `POST /api/auth/register` | Create player or coach account |
+| `POST /api/auth/login` / `logout` | Session management (cookie-based) |
+| `POST /api/checkout` | Start one-off or monthly purchase for a coach |
+| `POST /api/stripe/webhook` | Stripe fulfilment |
+| `PUT /api/coach/profile` | Update coach profile & rates |
+| `POST /api/videos` | Upload a video (multipart) — requires credit/subscription |
+| `GET /api/videos/:id/stream` | Stream a video (authorised parties only) |
+| `POST /api/videos/:id/feedback` | Coach posts feedback |
