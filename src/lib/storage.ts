@@ -61,6 +61,11 @@ export const VIDEO_CONTENT_TYPES = [
 
 export const MAX_VIDEO_BYTES = 500 * 1024 * 1024; // 500 MB
 
+// Coach profile media
+export const IMAGE_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
+export const MAX_INTRO_SECONDS = 5 * 60; // intro video length cap
+
 /** Only accept blob URLs that actually point at Vercel Blob storage. */
 export function isVercelBlobUrl(value: string): boolean {
   try {

@@ -22,14 +22,33 @@ export async function POST(request: Request) {
       token: blobToken(),
       onBeforeGenerateToken: async (_pathname, clientPayload) => {
         const session = await getSession();
-        if (!session || session.role !== Role.PLAYER) {
+        if (!session) throw new Error("Please log in first.");
+        const payload = JSON.parse(clientPayload ?? "{}") as {
+          coachId?: string;
+          kind?: string;
+        };
+
+        // Coaches uploading their own profile intro video.
+        if (payload.kind === "coach-intro") {
+          if (session.role !== Role.COACH) {
+            throw new Error("Coach account required.");
+          }
+          return {
+            allowedContentTypes: VIDEO_CONTENT_TYPES,
+            maximumSizeInBytes: MAX_VIDEO_BYTES,
+            addRandomSuffix: true,
+          };
+        }
+
+        // Players uploading a match video for review.
+        if (session.role !== Role.PLAYER) {
           throw new Error("Player account required.");
         }
-        const { coachId } = JSON.parse(clientPayload ?? "{}") as {
-          coachId?: string;
-        };
-        if (!coachId) throw new Error("Missing coach.");
-        const entitlement = await getEntitlementForCoach(session.id, coachId);
+        if (!payload.coachId) throw new Error("Missing coach.");
+        const entitlement = await getEntitlementForCoach(
+          session.id,
+          payload.coachId
+        );
         if (!entitlement) {
           throw new Error(
             "No review credit or active subscription with this coach."

@@ -28,9 +28,18 @@ export default async function CoachDetailPage({
     <div className="grid gap-8 lg:grid-cols-[1fr,380px]">
       <div>
         <div className="flex items-center gap-5">
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-court-100 text-3xl font-bold text-court-700">
-            {coach.name.charAt(0).toUpperCase()}
-          </div>
+          {profile.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.photoUrl}
+              alt={`Photo of ${coach.name}`}
+              className="h-20 w-20 shrink-0 rounded-full border border-slate-200 object-cover"
+            />
+          ) : (
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-court-100 text-3xl font-bold text-court-700">
+              {coach.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div>
             <h1 className="text-3xl font-bold">{coach.name}</h1>
             <p className="text-slate-500">
@@ -49,6 +58,20 @@ export default async function CoachDetailPage({
         <h2 className="mt-8 text-xl font-semibold">{profile.headline}</h2>
         {profile.bio && (
           <p className="mt-3 whitespace-pre-line text-slate-600">{profile.bio}</p>
+        )}
+
+        {profile.introVideoUrl && (
+          <div className="mt-8">
+            <p className="eyebrow text-court-600">
+              Meet {coach.name.split(" ")[0]}
+            </p>
+            <video
+              controls
+              preload="metadata"
+              src={profile.introVideoUrl}
+              className="mt-3 w-full rounded-xl border border-slate-200 bg-court-950"
+            />
+          </div>
         )}
 
         <div className="card mt-8">

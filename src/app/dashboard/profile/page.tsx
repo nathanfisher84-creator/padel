@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { Role } from "@/lib/constants";
 import { CoachProfileForm } from "@/components/CoachProfileForm";
+import { CoachMediaForm } from "@/components/CoachMediaForm";
+import { blobUploadsEnabled } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,11 @@ export default async function CoachProfilePage() {
         This is what players see when they browse coaches. You control your own
         rates.
       </p>
+      <CoachMediaForm
+        photoUrl={profile.photoUrl}
+        introVideoUrl={profile.introVideoUrl}
+        useBlobStorage={blobUploadsEnabled()}
+      />
       <CoachProfileForm
         initial={{
           headline: profile.headline,

@@ -14,9 +14,18 @@ export function CoachCard({
     >
       <div className="flex-1 p-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-court-100 text-xl font-bold text-court-700">
-            {profile.user.name.charAt(0).toUpperCase()}
-          </div>
+          {profile.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.photoUrl}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-full border border-slate-200 object-cover"
+            />
+          ) : (
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-court-100 text-xl font-bold text-court-700">
+              {profile.user.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div className="min-w-0">
             <h3 className="truncate text-lg font-semibold group-hover:text-court-700">
               {profile.user.name}
