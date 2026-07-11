@@ -3,6 +3,12 @@ import { CoachDirectory } from "@/components/CoachDirectory";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Find your padel coach",
+  description:
+    "Compare verified padel coaches: credentials, response times, player ratings and transparent prices. Pay per video review or subscribe monthly.",
+};
+
 export default async function CoachesPage() {
   const coaches = await getPublicCoaches();
 

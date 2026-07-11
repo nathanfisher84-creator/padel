@@ -8,6 +8,11 @@ const COOKIE_NAME = "padel_session";
 const SESSION_DAYS = 30;
 
 function secretKey(): Uint8Array {
+  if (!process.env.AUTH_SECRET && process.env.NODE_ENV === "production") {
+    console.error(
+      "SECURITY: AUTH_SECRET is not set — sessions are signed with a public default. Set AUTH_SECRET immediately."
+    );
+  }
   const secret = process.env.AUTH_SECRET ?? "dev-only-secret-change-me";
   return new TextEncoder().encode(secret);
 }

@@ -48,13 +48,8 @@ export async function GET(req: Request) {
       videoStorage: blobUploadsEnabled() ? "vercel-blob" : "local-disk",
       blobAuth: blobAuthMode(),
       blobTokenVar: blobTokenVarName(),
-      oidcTokenPresent: Boolean(process.env.VERCEL_OIDC_TOKEN),
       ...(blobWrite !== undefined ? { blobWrite } : {}),
-      // Names only (never values): which storage-related env vars Vercel
-      // injected into this deployment — diagnoses store-connection issues.
-      storageEnvVars: Object.keys(process.env)
-        .filter((k) => /BLOB|_READ_WRITE_TOKEN|DATABASE|POSTGRES|NEON|OIDC/i.test(k))
-        .sort(),
+      authSecretSet: Boolean(process.env.AUTH_SECRET),
       payments: stripeEnabled() ? "stripe" : "demo",
       platformFeePercent: platformFeePercent(),
       counts: { users, coaches, payments },
