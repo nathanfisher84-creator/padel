@@ -96,9 +96,10 @@ export function Hero({
               </dd>
             </div>
             <div>
-              <dt className="sr-only">Coach earnings</dt>
+              <dt className="sr-only">Plans</dt>
               <dd>
-                Coaches keep <span className="text-ball-400">80%</span>
+                One-off reviews <span className="text-ball-400">&</span> monthly
+                plans
               </dd>
             </div>
           </dl>

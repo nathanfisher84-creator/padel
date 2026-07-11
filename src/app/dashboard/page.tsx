@@ -219,6 +219,22 @@ async function CoachDashboard({ userId }: { userId: string }) {
         </Link>
       </div>
 
+      {/* Coach terms — shown only here, after full sign-up */}
+      <div className="rounded-xl border border-court-200 bg-court-50 px-5 py-4 text-sm text-court-900">
+        <span className="font-semibold">
+          You set your own rates and keep 80% of every payment.
+        </span>{" "}
+        The 20% platform fee is deducted automatically — the earnings shown
+        below are yours. Change your rates any time from{" "}
+        <Link
+          href="/dashboard/profile"
+          className="font-semibold text-court-700 underline"
+        >
+          your profile
+        </Link>
+        .
+      </div>
+
       <section className="grid gap-4 sm:grid-cols-3">
         <div className="card">
           <p className="text-sm text-slate-500">Your earnings (after platform fee)</p>

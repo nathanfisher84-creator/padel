@@ -22,8 +22,9 @@ export default async function CoachProfilePage() {
     <div className="mx-auto max-w-xl">
       <h1 className="text-3xl font-bold">My coach profile</h1>
       <p className="mt-2 text-slate-600">
-        This is what players see when they browse coaches. You control your own
-        rates.
+        This is what players see when they browse coaches. You set your own
+        rates and keep 80% of every payment — the 20% platform fee is deducted
+        automatically.
       </p>
       <CoachMediaForm
         photoUrl={profile.photoUrl}

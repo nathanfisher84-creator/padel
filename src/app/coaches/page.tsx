@@ -29,8 +29,8 @@ export default async function CoachesPage() {
       <p className="eyebrow text-court-600">Coach directory</p>
       <h1 className="mt-2 text-3xl sm:text-4xl">Find your padel coach</h1>
       <p className="mt-3 max-w-2xl text-slate-600">
-        Every coach sets their own rates. Pay once for a single video review,
-        or subscribe monthly for ongoing coaching.
+        Pay once for a single video review, or subscribe monthly for ongoing
+        coaching.
       </p>
 
       {coaches.length === 0 ? (
