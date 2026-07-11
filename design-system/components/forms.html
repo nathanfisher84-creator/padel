@@ -1,0 +1,19 @@
+<!-- @dsCard group="Components" -->
+<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet"><style>
+:root{--court-50:#f1f7f2;--court-100:#e0ede3;--court-200:#c2dbc9;--court-300:#9ac2a7;--court-400:#6da583;--court-500:#4b8765;--court-600:#35704f;--court-700:#2a5a40;--court-800:#234a36;--court-900:#1d3d2d;--court-950:#10241a;--ball-300:#e6ef86;--ball-400:#dce75f;--ball-500:#cfe23f;--ball-600:#7c8f0e;--slate-200:#e3dfd2;--slate-300:#cfc9b8;--slate-400:#a49d8a;--slate-500:#7f7867;--slate-600:#665f50;--slate-700:#4f483c;--slate-900:#23201a;--cream:#f8f4e9;--bone:#e5decd;--white:#fffefa}
+*{margin:0;box-sizing:border-box}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--cream);color:var(--slate-900);padding:32px;-webkit-font-smoothing:antialiased}
+.mono{font-family:'Spline Sans Mono',ui-monospace,monospace}
+.eyebrow{font-family:'Spline Sans Mono',monospace;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.18em}
+h1,h2,h3{font-weight:700;letter-spacing:-.015em;font-stretch:118%}
+.card{border:1px solid var(--slate-200);background:var(--white);border-radius:12px;padding:24px;box-shadow:0 1px 2px rgba(35,32,26,.05)}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.label{font-size:12px;color:var(--slate-500);margin-top:6px}
+</style></head><body>
+<p class="eyebrow" style="color:var(--court-600)">Form controls</p>
+<div style="max-width:420px;display:grid;gap:16px;margin-top:20px">
+ <div><label style="display:block;font-size:13px;font-weight:500;color:var(--slate-700);margin-bottom:5px">Headline</label><input style="width:100%;border:1px solid var(--slate-300);background:var(--white);border-radius:8px;padding:9px 12px;font-size:15px;font-family:inherit;color:var(--slate-900)" value="Ex-WPT player specialising in net play"></div>
+ <div><label style="display:block;font-size:13px;font-weight:500;color:var(--slate-700);margin-bottom:5px">Response-time commitment</label><select style="width:100%;border:1px solid var(--slate-300);background:var(--white);border-radius:8px;padding:9px 12px;font-size:15px;font-family:inherit;color:var(--slate-900)"><option>Within 48 hours</option></select></div>
+ <div><label style="display:block;font-size:13px;font-weight:500;color:var(--slate-700);margin-bottom:5px">Focused input</label><input style="width:100%;border:1px solid var(--slate-300);background:var(--white);border-radius:8px;padding:9px 12px;font-size:15px;font-family:inherit;color:var(--slate-900);border-color:var(--court-500);box-shadow:0 0 0 3px var(--court-200)" value="Focus ring — court-200"></div>
+ <div><label style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--court-500);background:var(--court-50);border-radius:8px;padding:9px 12px;font-size:14px"><input type="checkbox" checked> Bandeja</label> <div class="mono label">Selectable tile (focus shots)</div></div>
+</div></body></html>
