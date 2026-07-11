@@ -99,13 +99,13 @@ export default async function HomePage() {
             <div className="max-w-xl">
               <p className="eyebrow text-ball-400">For coaches</p>
               <h2 className="mt-3 text-3xl">
-                You set the rates. You keep 80%.
+                Coach players around the world
               </h2>
               <p className="mt-4 text-court-200">
-                Create a free profile, name your price for single reviews and
-                monthly plans, and coach players anywhere in the world on your
-                own schedule. Every payment is split automatically — your
-                earnings are always visible in your dashboard.
+                Create a free profile and receive match videos from players
+                wherever you are. Review on your own schedule, from any court
+                or couch — your full terms are in your coach dashboard once
+                you join.
               </p>
               <Link
                 href="/register?role=coach"
@@ -116,10 +116,10 @@ export default async function HomePage() {
             </div>
             <p
               className="stat hidden text-right font-bold leading-none text-court-800 lg:block"
-              style={{ fontSize: "9rem" }}
+              style={{ fontSize: "7rem" }}
               aria-hidden
             >
-              80%
+              PRO
             </p>
           </div>
         </section>

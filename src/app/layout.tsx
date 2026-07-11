@@ -19,7 +19,7 @@ const splineMono = Spline_Sans_Mono({
 export const metadata: Metadata = {
   title: "PadelPro Coaching — video analysis by top padel coaches",
   description:
-    "Upload your padel match or training videos and get personal feedback from professional coaches. Coaches join free and set their own rates.",
+    "Upload your padel match or training videos and get personal feedback from professional coaches. Coaches join free.",
 };
 
 export default function RootLayout({
@@ -78,7 +78,7 @@ export default function RootLayout({
                 </li>
               </ul>
               <p className="stat mt-4 text-sm text-ball-400">
-                Coaches keep 80% of every payment
+                Join free — coach players worldwide
               </p>
             </div>
           </div>

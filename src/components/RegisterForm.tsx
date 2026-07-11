@@ -212,8 +212,8 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
               <IntroVideoInput onChange={setIntroVideo} />
             </div>
             <p className="text-xs text-slate-500">
-              Joining is free. The platform keeps a small commission on each
-              payment; the rest is yours.
+              Joining is free — your profile goes live as soon as you sign up,
+              and your full payment terms are in your coach dashboard.
             </p>
           </>
         )}
