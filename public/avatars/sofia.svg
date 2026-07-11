@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Sofia Lindqvist — Stockholm. Club green, cream kit, blonde bob. -->
+  <rect width="400" height="400" fill="#35704f"/>
+  <g stroke="#f8f4e9" stroke-opacity="0.16" stroke-width="2">
+    <line x1="0" y1="330" x2="400" y2="330"/>
+    <line x1="80" y1="0" x2="80" y2="400"/>
+  </g>
+  <!-- hair back (bob behind shoulders) -->
+  <path d="M124 150 C124 84 158 62 200 62 C242 62 276 84 276 150 L282 268 C282 292 258 300 244 296 L156 296 C142 300 118 292 118 268 Z" fill="#e6cf8f"/>
+  <!-- shoulders -->
+  <path d="M56 400 C56 318 130 288 200 288 C270 288 344 318 344 400 Z" fill="#f8f4e9"/>
+  <path d="M166 286 h68 v26 c0 19 -15 30 -34 30 s-34 -11 -34 -30 Z" fill="#c98e59"/>
+  <!-- neck -->
+  <rect x="178" y="226" width="44" height="52" rx="16" fill="#d99e66"/>
+  <!-- head -->
+  <ellipse cx="200" cy="158" rx="62" ry="70" fill="#e8b184"/>
+  <!-- fringe -->
+  <path d="M136 150 C134 92 162 72 200 72 C238 72 266 92 264 150 C258 116 244 104 226 110 C210 115 226 98 200 96 C168 94 142 116 136 150 Z" fill="#f0dca4"/>
+  <!-- collar -->
+  <circle cx="200" cy="316" r="7" fill="#35704f"/>
+</svg>

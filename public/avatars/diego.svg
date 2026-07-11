@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Diego Fernández — Buenos Aires. Bone court, pine kit, chartreuse headband. -->
+  <rect width="400" height="400" fill="#d8cfba"/>
+  <g stroke="#10241a" stroke-opacity="0.12" stroke-width="2">
+    <line x1="0" y1="330" x2="400" y2="330"/>
+    <line x1="320" y1="0" x2="320" y2="400"/>
+  </g>
+  <!-- shoulders -->
+  <path d="M52 400 C52 316 128 284 200 284 C272 284 348 316 348 400 Z" fill="#10241a"/>
+  <path d="M164 284 h72 v30 c0 20 -16 32 -36 32 s-36 -12 -36 -32 Z" fill="#8a5a32"/>
+  <!-- neck -->
+  <rect x="176" y="228" width="48" height="52" rx="18" fill="#9c6739"/>
+  <!-- head -->
+  <ellipse cx="200" cy="162" rx="66" ry="74" fill="#b0784a"/>
+  <!-- hair: short curls above headband -->
+  <path d="M134 138 C134 84 162 64 200 64 C238 64 266 84 266 138 C266 120 246 100 200 100 C154 100 134 120 134 138 Z" fill="#171310"/>
+  <circle cx="152" cy="86" r="14" fill="#171310"/>
+  <circle cx="200" cy="74" r="16" fill="#171310"/>
+  <circle cx="248" cy="86" r="14" fill="#171310"/>
+  <!-- headband -->
+  <path d="M132 132 C150 118 250 118 268 132 L268 152 C246 138 154 138 132 152 Z" fill="#cfe23f"/>
+  <!-- ears -->
+  <circle cx="134" cy="172" r="12" fill="#9c6739"/>
+  <circle cx="266" cy="172" r="12" fill="#9c6739"/>
+  <!-- collar -->
+  <path d="M172 292 L200 318 L228 292" fill="none" stroke="#d8cfba" stroke-width="8" stroke-linecap="round"/>
+</svg>
