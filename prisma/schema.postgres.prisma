@@ -38,6 +38,7 @@ model CoachProfile {
   location          String?
   experienceYears   Int      @default(0)
   photoUrl          String?
+  introVideoUrl     String?
   // Each coach sets their own rates (stored in minor units, e.g. cents).
   oneOffPriceCents  Int
   monthlyPriceCents Int
