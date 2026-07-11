@@ -1,9 +1,8 @@
 name: Import generated media
 
-# One-shot helper: downloads AI-generated coach headshots and the homepage
-# hero video from the generation CDN (unreachable from the authoring
-# sandbox), optimizes them, and commits them into the repo as first-party
-# assets.
+# One-shot helper: downloads AI-generated assets from the generation CDN
+# (unreachable from the authoring sandbox) and commits them into the repo
+# as first-party files. Edit the download list per import run.
 on: workflow_dispatch
 
 permissions:
@@ -20,23 +19,13 @@ jobs:
       - name: Download assets
         run: |
           B="https://d8j0ntlcm91z4.cloudfront.net/user_3CLWhZn1DyGWsC2KnvB3OhhaQ9X"
-          curl -fsSL -o /tmp/carlos.png "$B/hf_20260711_051713_e38d23d0-53c6-4f44-b897-378459e73b8c.png"
-          curl -fsSL -o /tmp/sofia.png  "$B/hf_20260711_051718_28a0ff5a-38a4-49ae-a1b7-45071c0ebaa3.png"
-          curl -fsSL -o /tmp/diego.png  "$B/hf_20260711_051722_65505697-148a-4549-9de7-e7b8e120dd85.png"
-          curl -fsSL -o public/media/hero-loop.mp4 --create-dirs "$B/hf_20260711_051724_d5191eff-1d81-4d56-b992-ef809ed6ea79.mp4"
-
-      - name: Optimize headshots to 800px JPEG
-        run: |
-          sudo apt-get update -q && sudo apt-get install -yq imagemagick
-          for n in carlos sofia diego; do
-            convert /tmp/$n.png -resize 800x800 -quality 86 public/avatars/$n.jpg
-          done
-          ls -la public/avatars public/media
+          curl -fsSL -o public/media/hero-ball.mp4 --create-dirs "$B/hf_20260711_054210_e507f229-49b1-43d2-8f87-07247eaf97e0.mp4"
+          ls -la public/media
 
       - name: Commit assets
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/avatars/*.jpg public/media/hero-loop.mp4
-          git commit -m "Add AI-generated coach headshots and homepage hero video"
+          git add public/media
+          git commit -m "Add hero padel-ball macro loop video"
           git push

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { Scene3D } from "@/components/three/Scene3D";
 
 gsap.registerPlugin(useGSAP);
 
@@ -104,8 +103,30 @@ export function Hero({
             </div>
           </dl>
         </div>
-        <div data-hero className="h-[260px] w-full sm:h-[320px] lg:h-[400px]">
-          <Scene3D className="h-full w-full" />
+        {/* Macro loop of the ball — blends into the pine hero via a soft
+            radial mask so it reads as staged in the space, not boxed. */}
+        <div
+          data-hero
+          className="relative mx-auto aspect-square w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[400px]"
+        >
+          <video
+            className="h-full w-full rounded-full object-cover"
+            style={{
+              maskImage:
+                "radial-gradient(circle, black 58%, transparent 72%)",
+              WebkitMaskImage:
+                "radial-gradient(circle, black 58%, transparent 72%)",
+            }}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden
+          >
+            <source src="/media/hero-ball.webm" type="video/webm" />
+            <source src="/media/hero-ball.mp4" type="video/mp4" />
+          </video>
         </div>
       </div>
     </section>
