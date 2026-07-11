@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { CoachCard } from "@/components/CoachCard";
+import { Scene3D } from "@/components/three/Scene3D";
 
 export const dynamic = "force-dynamic";
 
@@ -24,36 +25,39 @@ export default async function HomePage() {
             backgroundSize: "48px 48px",
           }}
         />
-        <div className="relative max-w-2xl">
-          <p className="mb-4 inline-block rounded-full bg-ball-500/20 px-3 py-1 text-sm font-semibold text-ball-400">
-            Video analysis for padel players
-          </p>
-          <h1 className="text-4xl font-extrabold leading-tight sm:text-5xl">
-            Get personal feedback from{" "}
-            <span className="text-ball-400">professional padel coaches</span>
-          </h1>
-          <p className="mt-4 text-lg text-court-100">
-            Record your match or training session, upload the video, and receive
-            detailed, personalised feedback from the coach you choose — wherever
-            you play.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/coaches" className="btn-primary !bg-ball-500 !text-court-950 hover:!bg-ball-400">
-              Find your coach
-            </Link>
-            <Link
-              href="/register?role=coach"
-              className="btn-secondary !border-court-700 !bg-transparent !text-white hover:!bg-court-900"
-            >
-              I&apos;m a coach — join free
-            </Link>
+        <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="max-w-2xl">
+            <p className="mb-4 inline-block rounded-full bg-ball-500/20 px-3 py-1 text-sm font-semibold text-ball-400">
+              Video analysis for padel players
+            </p>
+            <h1 className="text-4xl leading-tight sm:text-5xl">
+              Get personal feedback from{" "}
+              <span className="text-ball-400">professional padel coaches</span>
+            </h1>
+            <p className="mt-4 text-lg text-court-100">
+              Record your match or training session, upload the video, and
+              receive detailed, personalised feedback from the coach you choose
+              — wherever you play.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/coaches" className="btn-primary !bg-ball-500 !text-court-950 hover:!bg-ball-400">
+                Find your coach
+              </Link>
+              <Link
+                href="/register?role=coach"
+                className="btn-secondary !border-court-700 !bg-transparent !text-white hover:!bg-court-900"
+              >
+                I&apos;m a coach — join free
+              </Link>
+            </div>
           </div>
+          <Scene3D className="h-[260px] w-full sm:h-[320px] lg:h-[380px]" />
         </div>
       </section>
 
       {/* How it works */}
       <section>
-        <h2 className="text-center text-3xl font-bold">How it works</h2>
+        <h2 className="text-center text-3xl">How it works</h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {[
             {
@@ -87,7 +91,7 @@ export default async function HomePage() {
       {featured.length > 0 && (
         <section>
           <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-3xl font-bold">Featured coaches</h2>
+            <h2 className="text-3xl">Featured coaches</h2>
             <Link href="/coaches" className="font-semibold text-court-600 hover:underline">
               View all →
             </Link>
@@ -103,7 +107,7 @@ export default async function HomePage() {
       {/* For coaches */}
       <section className="card sm:flex sm:items-center sm:justify-between sm:gap-8">
         <div>
-          <h2 className="text-2xl font-bold">Are you a padel coach?</h2>
+          <h2 className="text-2xl">Are you a padel coach?</h2>
           <p className="mt-2 max-w-xl text-slate-600">
             Create your profile for free, set your own prices for one-off video
             reviews and monthly coaching plans, and earn from players around the
