@@ -42,6 +42,10 @@ export default async function CoachProfilePage() {
           monthlyVideoLimit: profile.monthlyVideoLimit,
           currency: profile.currency,
           isPublished: profile.isPublished,
+          turnaroundHours: profile.turnaroundHours,
+          languages: profile.languages ?? "",
+          certifications: profile.certifications ?? "",
+          careerHighlights: profile.careerHighlights ?? "",
         }}
       />
     </div>

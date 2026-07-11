@@ -13,6 +13,10 @@ type ProfileValues = {
   monthlyVideoLimit: number;
   currency: string;
   isPublished: boolean;
+  turnaroundHours: number;
+  languages: string;
+  certifications: string;
+  careerHighlights: string;
 };
 
 export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
@@ -39,7 +43,10 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
         monthlyPrice: form.get("monthlyPrice"),
         monthlyVideoLimit: form.get("monthlyVideoLimit"),
         currency: form.get("currency"),
-        isPublished: form.get("isPublished") === "on",
+        turnaroundHours: form.get("turnaroundHours"),
+        languages: form.get("languages"),
+        certifications: form.get("certifications"),
+        careerHighlights: form.get("careerHighlights"),
       }),
     });
     setBusy(false);
@@ -98,10 +105,38 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
         </label>
         <input className="input" id="monthlyVideoLimit" name="monthlyVideoLimit" type="number" min={1} max={30} defaultValue={initial.monthlyVideoLimit} />
       </div>
-      <label className="flex items-center gap-2 text-sm text-slate-700">
-        <input type="checkbox" name="isPublished" defaultChecked={initial.isPublished} className="h-4 w-4 rounded border-slate-300" />
-        Show my profile publicly so players can find me
-      </label>
+      <div>
+        <label className="label" htmlFor="turnaroundHours">
+          Your response-time commitment (shown to players)
+        </label>
+        <select className="input" id="turnaroundHours" name="turnaroundHours" defaultValue={initial.turnaroundHours}>
+          <option value={24}>Within 24 hours</option>
+          <option value={48}>Within 48 hours</option>
+          <option value={72}>Within 72 hours</option>
+          <option value={168}>Within 7 days</option>
+        </select>
+      </div>
+      <div>
+        <label className="label" htmlFor="languages">Languages you coach in</label>
+        <input className="input" id="languages" name="languages" defaultValue={initial.languages} placeholder="e.g. Spanish, English" />
+      </div>
+      <div>
+        <label className="label" htmlFor="certifications">
+          Certifications (one per line)
+        </label>
+        <textarea className="input" id="certifications" name="certifications" rows={3} defaultValue={initial.certifications} placeholder={"e.g. FIP Coaching Course Level 2"} />
+      </div>
+      <div>
+        <label className="label" htmlFor="careerHighlights">
+          Career highlights (one per line)
+        </label>
+        <textarea className="input" id="careerHighlights" name="careerHighlights" rows={3} defaultValue={initial.careerHighlights} placeholder={"e.g. Coached a junior national champion"} />
+      </div>
+      <p className="text-xs text-slate-500">
+        {initial.isPublished
+          ? "Your profile is live. Edits appear immediately."
+          : "Your profile is awaiting review by our team — it will go live once approved."}
+      </p>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {saved && <p className="text-sm font-medium text-ball-600">Profile saved ✓</p>}
       <button className="btn-primary w-full" disabled={busy}>

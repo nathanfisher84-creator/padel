@@ -6,7 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSession, type SessionUser } from "@/lib/auth";
 import { getEntitlementForCoach } from "@/lib/entitlements";
-import { Role, SubmissionStatus } from "@/lib/constants";
+import { Role, SubmissionStatus, FOCUS_SHOT_KEYS } from "@/lib/constants";
 import {
   isVercelBlobUrl,
   MAX_VIDEO_BYTES,
@@ -22,7 +22,14 @@ const blobBodySchema = z.object({
   title: z.string().trim().min(1).max(200),
   notes: z.string().trim().max(5000).optional(),
   videoUrl: z.string().url(),
+  focusShots: z.array(z.string()).max(12).optional(),
 });
+
+/** Keep only known shot keys, comma-joined for storage. */
+function cleanShots(shots: string[] | undefined | null): string | null {
+  const valid = (shots ?? []).filter((s) => (FOCUS_SHOT_KEYS as string[]).includes(s));
+  return valid.length ? valid.join(",") : null;
+}
 
 /**
  * Create a video submission. Requires an entitlement with the chosen coach:
@@ -50,10 +57,11 @@ async function createFromBlob(req: Request, session: SessionUser) {
     return NextResponse.json({ error: "Invalid input." }, { status: 400 });
   }
   const { coachId, title, notes, videoUrl } = parsed.data;
+  const focusShots = cleanShots(parsed.data.focusShots);
   if (!isVercelBlobUrl(videoUrl)) {
     return NextResponse.json({ error: "Invalid video URL." }, { status: 400 });
   }
-  return createSubmission(session, coachId, title, notes ?? "", videoUrl);
+  return createSubmission(session, coachId, title, notes ?? "", videoUrl, focusShots);
 }
 
 async function createFromMultipart(req: Request, session: SessionUser) {
@@ -65,6 +73,7 @@ async function createFromMultipart(req: Request, session: SessionUser) {
   const coachId = String(form.get("coachId") ?? "");
   const title = String(form.get("title") ?? "").trim();
   const notes = String(form.get("notes") ?? "").trim();
+  const focusShots = cleanShots(form.getAll("focusShots").map(String));
   const file = form.get("video");
 
   if (!coachId || !title || !(file instanceof File)) {
@@ -94,7 +103,7 @@ async function createFromMultipart(req: Request, session: SessionUser) {
     Buffer.from(await file.arrayBuffer())
   );
 
-  return createSubmission(session, coachId, title, notes, filename);
+  return createSubmission(session, coachId, title, notes, filename, focusShots);
 }
 
 async function createSubmission(
@@ -102,7 +111,8 @@ async function createSubmission(
   coachId: string,
   title: string,
   notes: string,
-  videoPath: string
+  videoPath: string,
+  focusShots: string | null
 ) {
   const entitlement = await getEntitlementForCoach(session.id, coachId);
   if (!entitlement) {
@@ -121,6 +131,7 @@ async function createSubmission(
       coachId,
       title,
       notes: notes || null,
+      focusShots,
       videoPath,
       status: SubmissionStatus.AWAITING_FEEDBACK,
       // A one-off credit is consumed by linking the payment to this submission.

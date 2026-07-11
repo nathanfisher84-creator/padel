@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
+import { getPublicCoaches } from "@/lib/coaches";
 import { CoachCard } from "@/components/CoachCard";
 import { Hero } from "@/components/home/Hero";
 import { Reveal } from "@/components/motion/Reveal";
@@ -26,12 +26,7 @@ const STEPS = [
 ];
 
 export default async function HomePage() {
-  const featured = await db.coachProfile.findMany({
-    where: { isPublished: true },
-    include: { user: true },
-    orderBy: { createdAt: "asc" },
-    take: 3,
-  });
+  const featured = await getPublicCoaches(3);
 
   const coachCount = featured.length;
   const cheapest = featured.reduce(

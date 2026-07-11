@@ -50,6 +50,10 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
           body.oneOffPrice = form.get("oneOffPrice");
           body.monthlyPrice = form.get("monthlyPrice");
           body.currency = form.get("currency");
+          body.turnaroundHours = form.get("turnaroundHours");
+          body.languages = form.get("languages");
+          body.certifications = form.get("certifications");
+          body.careerHighlights = form.get("careerHighlights");
         }
         const res = await fetch("/api/auth/register", {
           method: "POST",
@@ -174,6 +178,35 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
                   <input className="input" id="experienceYears" name="experienceYears" type="number" min={0} max={60} defaultValue={5} />
                 </div>
               </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="label" htmlFor="turnaroundHours">
+                    Response-time commitment
+                  </label>
+                  <select className="input" id="turnaroundHours" name="turnaroundHours" defaultValue={72}>
+                    <option value={24}>Within 24 hours</option>
+                    <option value={48}>Within 48 hours</option>
+                    <option value={72}>Within 72 hours</option>
+                    <option value={168}>Within 7 days</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="label" htmlFor="languages">Languages you coach in</label>
+                  <input className="input" id="languages" name="languages" placeholder="e.g. Spanish, English" />
+                </div>
+              </div>
+              <div>
+                <label className="label" htmlFor="certifications">
+                  Certifications (one per line)
+                </label>
+                <textarea className="input" id="certifications" name="certifications" rows={2} placeholder={"e.g. FIP Coaching Course Level 2"} />
+              </div>
+              <div>
+                <label className="label" htmlFor="careerHighlights">
+                  Career highlights (one per line)
+                </label>
+                <textarea className="input" id="careerHighlights" name="careerHighlights" rows={2} placeholder={"e.g. Coached a junior national champion"} />
+              </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
                   <label className="label" htmlFor="oneOffPrice">Price per video review</label>
@@ -212,8 +245,9 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
               <IntroVideoInput onChange={setIntroVideo} />
             </div>
             <p className="text-xs text-slate-500">
-              Joining is free — your profile goes live as soon as you sign up,
-              and your full payment terms are in your coach dashboard.
+              Joining is free. Every coach profile is reviewed by our team
+              before going live — you&apos;ll see the status in your dashboard,
+              along with your full payment terms.
             </p>
           </>
         )}

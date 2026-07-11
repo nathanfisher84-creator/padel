@@ -4,6 +4,9 @@ import { getSession } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import { Role, SubmissionStatus } from "@/lib/constants";
 import { FeedbackForm } from "@/components/FeedbackForm";
+import { RatingForm } from "@/components/RatingForm";
+import { blobUploadsEnabled } from "@/lib/storage";
+import { FOCUS_SHOTS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +20,7 @@ export default async function SubmissionPage({
 
   const submission = await db.videoSubmission.findUnique({
     where: { id: params.id },
-    include: { player: true, coach: true, feedback: true },
+    include: { player: true, coach: true, feedback: true, review: true },
   });
   if (!submission) notFound();
 
@@ -55,6 +58,17 @@ export default async function SubmissionPage({
         src={`/api/videos/${submission.id}/stream`}
       />
 
+      {submission.focusShots && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="eyebrow text-court-600">Focus on</span>
+          {submission.focusShots.split(",").map((key) => (
+            <span key={key} className="badge bg-court-100 text-court-800">
+              {FOCUS_SHOTS.find((sh) => sh.key === key)?.label ?? key}
+            </span>
+          ))}
+        </div>
+      )}
+
       {submission.notes && (
         <div className="card">
           <h2 className="font-semibold">
@@ -74,16 +88,45 @@ export default async function SubmissionPage({
           <p className="mt-1 text-xs text-slate-500">
             {formatDate(submission.feedback.createdAt)}
           </p>
+          {submission.feedback.videoUrl && (
+            <video
+              controls
+              preload="metadata"
+              className="mt-3 aspect-video w-full rounded-lg border border-slate-200 bg-court-950"
+              src={submission.feedback.videoUrl}
+            />
+          )}
           <p className="mt-3 whitespace-pre-line text-slate-700">
             {submission.feedback.content}
           </p>
         </div>
       ) : isCoach ? (
-        <FeedbackForm submissionId={submission.id} />
+        <FeedbackForm
+          submissionId={submission.id}
+          useBlobStorage={blobUploadsEnabled()}
+        />
       ) : (
         <div className="card text-sm text-slate-500">
           Coach {submission.coach.name} hasn&apos;t reviewed this video yet —
           you&apos;ll see the feedback here as soon as it&apos;s ready.
+        </div>
+      )}
+
+      {submission.feedback && isPlayer && !submission.review && (
+        <RatingForm submissionId={submission.id} />
+      )}
+      {submission.review && (
+        <div className="card">
+          <h2 className="font-semibold">
+            {isPlayer ? "Your rating" : "Player rating"}
+          </h2>
+          <p className="mt-2 text-xl text-ball-600" aria-label={`${submission.review.rating} out of 5 stars`}>
+            {"★".repeat(submission.review.rating)}
+            <span className="text-slate-300">{"★".repeat(5 - submission.review.rating)}</span>
+          </p>
+          {submission.review.comment && (
+            <p className="mt-2 text-sm text-slate-600">{submission.review.comment}</p>
+          )}
         </div>
       )}
     </div>

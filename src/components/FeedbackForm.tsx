@@ -1,11 +1,21 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { upload } from "@vercel/blob/client";
 
-export function FeedbackForm({ submissionId }: { submissionId: string }) {
+export function FeedbackForm({
+  submissionId,
+  useBlobStorage,
+}: {
+  submissionId: string;
+  useBlobStorage: boolean;
+}) {
   const router = useRouter();
+  const videoInput = useRef<HTMLInputElement>(null);
+  const [videoName, setVideoName] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -13,17 +23,50 @@ export function FeedbackForm({ submissionId }: { submissionId: string }) {
     setBusy(true);
     setError(null);
     const form = new FormData(e.currentTarget);
-    const res = await fetch(`/api/videos/${submissionId}/feedback`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: form.get("content") }),
-    });
-    if (res.ok) {
+    const video = videoInput.current?.files?.[0] ?? null;
+
+    try {
+      let res: Response;
+      if (video && useBlobStorage) {
+        setStatus("Uploading your video reply…");
+        const blob = await upload(video.name, video, {
+          access: "public",
+          handleUploadUrl: "/api/videos/upload-token",
+          clientPayload: JSON.stringify({ kind: "feedback" }),
+          onUploadProgress: ({ percentage }) =>
+            setStatus(`Uploading your video reply… ${Math.round(percentage)}%`),
+        });
+        setStatus("Sending feedback…");
+        res = await fetch(`/api/videos/${submissionId}/feedback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: form.get("content"), videoUrl: blob.url }),
+        });
+      } else if (video) {
+        setStatus("Uploading…");
+        const multipart = new FormData();
+        multipart.append("content", String(form.get("content")));
+        multipart.append("video", video);
+        res = await fetch(`/api/videos/${submissionId}/feedback`, {
+          method: "POST",
+          body: multipart,
+        });
+      } else {
+        res = await fetch(`/api/videos/${submissionId}/feedback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: form.get("content") }),
+        });
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Could not save feedback.");
+      }
       router.refresh();
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Could not save feedback.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save feedback.");
       setBusy(false);
+      setStatus(null);
     }
   }
 
@@ -44,9 +87,34 @@ export function FeedbackForm({ submissionId }: { submissionId: string }) {
         minLength={10}
         placeholder="What's working well, what to improve, and specific drills to practise…"
       />
+      <div>
+        <span className="label">Video reply (optional)</span>
+        <p className="mb-2 text-xs text-slate-500">
+          Record yourself talking through the analysis — players love it.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            className="btn-secondary !px-4 !py-2 text-sm"
+            onClick={() => videoInput.current?.click()}
+          >
+            {videoName ? "Change video" : "Attach a video"}
+          </button>
+          {videoName && (
+            <span className="stat text-xs text-slate-500">{videoName}</span>
+          )}
+        </div>
+        <input
+          ref={videoInput}
+          type="file"
+          accept="video/*"
+          className="hidden"
+          onChange={(e) => setVideoName(e.target.files?.[0]?.name ?? null)}
+        />
+      </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button className="btn-primary" disabled={busy}>
-        {busy ? "Sending…" : "Send feedback to player"}
+        {busy ? status ?? "Sending…" : "Send feedback to player"}
       </button>
     </form>
   );

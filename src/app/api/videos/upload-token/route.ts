@@ -28,8 +28,8 @@ export async function POST(request: Request) {
           kind?: string;
         };
 
-        // Coaches uploading their own profile intro video.
-        if (payload.kind === "coach-intro") {
+        // Coaches uploading their profile intro or a feedback reply video.
+        if (payload.kind === "coach-intro" || payload.kind === "feedback") {
           if (session.role !== Role.COACH) {
             throw new Error("Coach account required.");
           }

@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
+import { FOCUS_SHOTS } from "@/lib/constants";
 
 export function UploadForm({
   coaches,
@@ -55,6 +56,7 @@ export function UploadForm({
         title: form.get("title"),
         notes: form.get("notes") || undefined,
         videoUrl: blob.url,
+        focusShots: form.getAll("focusShots").map(String),
       }),
     });
   }
@@ -81,6 +83,25 @@ export function UploadForm({
           placeholder="e.g. Doubles match — struggling with bandeja"
         />
       </div>
+      <fieldset>
+        <legend className="label">Which shots should the coach focus on?</legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {FOCUS_SHOTS.map((shot) => (
+            <label
+              key={shot.key}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 has-[:checked]:border-court-500 has-[:checked]:bg-court-50"
+            >
+              <input
+                type="checkbox"
+                name="focusShots"
+                value={shot.key}
+                className="h-4 w-4 rounded border-slate-300"
+              />
+              {shot.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <div>
         <label className="label" htmlFor="notes">
           What should the coach focus on? (optional)
@@ -92,6 +113,15 @@ export function UploadForm({
           rows={3}
           placeholder="e.g. My positioning at the net feels off, and my lobs keep landing short…"
         />
+      </div>
+      <div className="rounded-lg border border-bone-200 bg-cream-50 px-4 py-3 text-xs text-slate-600">
+        <p className="font-semibold text-slate-700">How to film for the best feedback</p>
+        <ul className="mt-1 list-inside list-disc space-y-0.5">
+          <li>Film from behind the court, high enough to see both your feet and the ball</li>
+          <li>Landscape, steady phone — a fence post or tripod beats a shaky hand</li>
+          <li>For shot analysis: 1–2 minutes of repetitions; for tactics: 10–20 minutes of match play</li>
+          <li>Make sure you are identifiable (say your shirt colour in the notes)</li>
+        </ul>
       </div>
       <div>
         <label className="label" htmlFor="video">Video file (MP4, MOV, WEBM — max 500 MB)</label>
