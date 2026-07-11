@@ -113,6 +113,23 @@ Checkout redirects land in the right place.
 backend (`vercel-blob` or `local-disk`), payment mode (`stripe` or `demo`)
 and the configured platform fee — a one-request smoke test after any deploy.
 
+## Go-live checklist
+
+Everything below the fold is done in code; these four steps are dashboard
+actions for the owner:
+
+1. **Set `AUTH_SECRET`** (critical): Vercel → padel → Settings →
+   Environment Variables → add `AUTH_SECRET` = output of
+   `openssl rand -base64 32`, all environments, then redeploy.
+   `GET /api/health` reports `authSecretSet` — it must be `true`.
+2. **Enable Stripe** (real payments): create a Stripe account, set
+   `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` (see below), and set
+   `APP_URL` to the public URL so checkout redirects land correctly.
+3. **Custom domain**: Vercel → padel → Settings → Domains. Update
+   `APP_URL` to match (it also drives the sitemap and social cards).
+4. **Approve coaches**: new coach signups appear in the admin dashboard's
+   "Coach approvals" queue and are invisible until approved.
+
 ## Enabling real payments
 
 1. Create a [Stripe](https://dashboard.stripe.com) account and set

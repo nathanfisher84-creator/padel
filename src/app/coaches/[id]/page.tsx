@@ -7,6 +7,21 @@ import { PurchasePanel } from "@/components/PurchasePanel";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const coach = await db.user.findUnique({
+    where: { id: params.id },
+    include: { coachProfile: true },
+  });
+  if (!coach?.coachProfile?.isPublished) return {};
+  return {
+    title: `${coach.name} — padel video analysis`,
+    description: coach.coachProfile.headline,
+    openGraph: coach.coachProfile.photoUrl
+      ? { images: [{ url: coach.coachProfile.photoUrl }] }
+      : undefined,
+  };
+}
+
 export default async function CoachDetailPage({
   params,
 }: {

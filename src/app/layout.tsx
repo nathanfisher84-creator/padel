@@ -17,9 +17,19 @@ const splineMono = Spline_Sans_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PadelPro Coaching — video analysis by top padel coaches",
+  metadataBase: new URL(process.env.APP_URL ?? "https://padel-bay-delta.vercel.app"),
+  title: {
+    default: "PadelPro Coaching — video analysis by top padel coaches",
+    template: "%s · PadelPro Coaching",
+  },
   description:
-    "Upload your padel match or training videos and get personal feedback from professional coaches. Coaches join free.",
+    "Upload your padel match or training videos and get personal feedback from professional coaches. Feedback in days, not weeks.",
+  openGraph: {
+    siteName: "PadelPro Coaching",
+    type: "website",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({
@@ -84,7 +94,15 @@ export default function RootLayout({
           </div>
           <div className="border-t border-court-900">
             <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-court-400 sm:flex-row">
-              <span>© {new Date().getFullYear()} PadelPro Coaching</span>
+              <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                © {new Date().getFullYear()} PadelPro Coaching
+                <Link href="/terms" className="hover:text-white">
+                  Terms
+                </Link>
+                <Link href="/privacy" className="hover:text-white">
+                  Privacy
+                </Link>
+              </span>
               <span className="eyebrow">Improve your game, one video at a time</span>
             </div>
           </div>
