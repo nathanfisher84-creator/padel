@@ -13,7 +13,11 @@ const bodySchema = z.object({
   monthlyPrice: z.coerce.number().min(1).max(10000),
   monthlyVideoLimit: z.coerce.number().int().min(1).max(30),
   currency: z.enum(["EUR", "USD", "GBP"]),
-  isPublished: z.boolean(),
+  isPublished: z.boolean().optional(), // ignored: publishing is admin-controlled
+  turnaroundHours: z.coerce.number().int().refine((h) => [24, 48, 72, 168].includes(h)),
+  languages: z.string().trim().max(120).optional(),
+  certifications: z.string().trim().max(1000).optional(),
+  careerHighlights: z.string().trim().max(1000).optional(),
 });
 
 export async function PUT(req: Request) {
@@ -42,7 +46,10 @@ export async function PUT(req: Request) {
       monthlyPriceCents: Math.round(data.monthlyPrice * 100),
       monthlyVideoLimit: data.monthlyVideoLimit,
       currency: data.currency,
-      isPublished: data.isPublished,
+      turnaroundHours: data.turnaroundHours,
+      languages: data.languages || null,
+      certifications: data.certifications || null,
+      careerHighlights: data.careerHighlights || null,
     },
   });
 

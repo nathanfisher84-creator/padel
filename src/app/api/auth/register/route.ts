@@ -17,6 +17,10 @@ const bodySchema = z.object({
   oneOffPrice: z.coerce.number().min(1).max(10000).optional(),
   monthlyPrice: z.coerce.number().min(1).max(10000).optional(),
   currency: z.enum(["EUR", "USD", "GBP"]).optional(),
+  turnaroundHours: z.coerce.number().int().optional(),
+  languages: z.string().trim().max(120).optional(),
+  certifications: z.string().trim().max(1000).optional(),
+  careerHighlights: z.string().trim().max(1000).optional(),
 });
 
 export async function POST(req: Request) {
@@ -61,6 +65,14 @@ export async function POST(req: Request) {
                 oneOffPriceCents: Math.round(data.oneOffPrice! * 100),
                 monthlyPriceCents: Math.round(data.monthlyPrice! * 100),
                 currency: data.currency ?? "EUR",
+                turnaroundHours: [24, 48, 72, 168].includes(
+                  data.turnaroundHours ?? 0
+                )
+                  ? data.turnaroundHours
+                  : 72,
+                languages: data.languages || null,
+                certifications: data.certifications || null,
+                careerHighlights: data.careerHighlights || null,
               },
             },
           }

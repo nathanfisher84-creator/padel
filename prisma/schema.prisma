@@ -28,6 +28,8 @@ model User {
   coachSubscriptions Subscription[]    @relation("CoachSubscriptions")
   submissions        VideoSubmission[] @relation("PlayerSubmissions")
   reviewQueue        VideoSubmission[] @relation("CoachSubmissions")
+  reviewsWritten     Review[]          @relation("PlayerReviews")
+  reviewsReceived    Review[]          @relation("CoachReviews")
 }
 
 model CoachProfile {
@@ -40,12 +42,17 @@ model CoachProfile {
   experienceYears   Int      @default(0)
   photoUrl          String?
   introVideoUrl     String?
+  // Trust pack: coach-committed response time and structured credentials.
+  turnaroundHours   Int      @default(72)
+  languages         String?
+  certifications    String?
+  careerHighlights  String?
   // Each coach sets their own rates (stored in minor units, e.g. cents).
   oneOffPriceCents  Int
   monthlyPriceCents Int
   monthlyVideoLimit Int      @default(4)
   currency          String   @default("EUR")
-  isPublished       Boolean  @default(true)
+  isPublished       Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -87,21 +94,24 @@ model Payment {
 }
 
 model VideoSubmission {
-  id        String   @id @default(cuid())
-  playerId  String
-  player    User     @relation("PlayerSubmissions", fields: [playerId], references: [id], onDelete: Cascade)
-  coachId   String
-  coach     User     @relation("CoachSubmissions", fields: [coachId], references: [id], onDelete: Cascade)
-  title     String
-  notes     String?
-  videoPath String
-  status    String // AWAITING_FEEDBACK | REVIEWED
+  id         String   @id @default(cuid())
+  playerId   String
+  player     User     @relation("PlayerSubmissions", fields: [playerId], references: [id], onDelete: Cascade)
+  coachId    String
+  coach      User     @relation("CoachSubmissions", fields: [coachId], references: [id], onDelete: Cascade)
+  title      String
+  notes      String?
+  // Comma-separated shot keys the player wants analysed (see FOCUS_SHOTS).
+  focusShots String?
+  videoPath  String
+  status     String // AWAITING_FEEDBACK | REVIEWED
   // Set when the submission consumed a one-off review credit.
-  paymentId String?  @unique
-  payment   Payment? @relation(fields: [paymentId], references: [id])
-  createdAt DateTime @default(now())
+  paymentId  String?  @unique
+  payment    Payment? @relation(fields: [paymentId], references: [id])
+  createdAt  DateTime @default(now())
 
   feedback Feedback?
+  review   Review?
 }
 
 model Feedback {
@@ -109,5 +119,21 @@ model Feedback {
   submissionId String          @unique
   submission   VideoSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   content      String
+  videoUrl     String?
+  createdAt    DateTime        @default(now())
+}
+
+// A player's rating of a delivered video review. One per submission,
+// only possible after feedback exists.
+model Review {
+  id           String          @id @default(cuid())
+  submissionId String          @unique
+  submission   VideoSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  playerId     String
+  player       User            @relation("PlayerReviews", fields: [playerId], references: [id], onDelete: Cascade)
+  coachId      String
+  coach        User            @relation("CoachReviews", fields: [coachId], references: [id], onDelete: Cascade)
+  rating       Int
+  comment      String?
   createdAt    DateTime        @default(now())
 }

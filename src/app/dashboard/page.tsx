@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { ApproveCoachButton } from "@/components/ApproveCoachButton";
 import { getSession } from "@/lib/auth";
 import { getEntitlements } from "@/lib/entitlements";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -219,6 +220,15 @@ async function CoachDashboard({ userId }: { userId: string }) {
         </Link>
       </div>
 
+      {profile && !profile.isPublished && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+          <span className="font-semibold">Your profile is being reviewed.</span>{" "}
+          Our team checks every coach before they go live — you&apos;ll appear
+          in the directory as soon as you&apos;re approved. You can keep
+          polishing your profile in the meantime.
+        </div>
+      )}
+
       {/* Coach terms — shown only here, after full sign-up */}
       <div className="rounded-xl border border-court-200 bg-court-50 px-5 py-4 text-sm text-court-900">
         <span className="font-semibold">
@@ -320,10 +330,45 @@ async function AdminDashboard() {
     orderBy: { createdAt: "desc" },
     take: 15,
   });
+  const pendingCoaches = await db.coachProfile.findMany({
+    where: { isPublished: false },
+    include: { user: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "asc" },
+  });
 
   return (
     <div className="space-y-10">
       <h1 className="text-3xl font-bold">Platform overview</h1>
+
+      {pendingCoaches.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold">
+            Coach approvals
+            <span className="badge ml-2 bg-amber-100 text-amber-700">
+              {pendingCoaches.length} waiting
+            </span>
+          </h2>
+          <div className="mt-4 space-y-3">
+            {pendingCoaches.map((p) => (
+              <div key={p.id} className="card flex flex-wrap items-center justify-between gap-4 !py-4">
+                <div className="min-w-0">
+                  <p className="font-semibold">
+                    {p.user.name}{" "}
+                    <span className="text-sm font-normal text-slate-500">· {p.user.email}</span>
+                  </p>
+                  <p className="mt-0.5 truncate text-sm text-slate-600">{p.headline}</p>
+                  <p className="stat mt-0.5 text-xs uppercase tracking-wide text-slate-400">
+                    {p.location ?? "No location"} · {p.experienceYears} yrs
+                    {p.languages ? ` · ${p.languages}` : ""}
+                  </p>
+                </div>
+                <ApproveCoachButton userId={p.userId} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Gross revenue", formatMoney(totals._sum.amountCents ?? 0, "EUR")],

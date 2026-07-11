@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatMoney } from "@/lib/format";
+import { turnaroundLabel } from "@/lib/constants";
 
 /**
  * The public, client-safe slice of a coach profile. Never widen this to
@@ -17,7 +18,10 @@ export type PublicCoach = {
   oneOffPriceCents: number;
   monthlyPriceCents: number;
   currency: string;
+  turnaroundHours: number;
   user: { name: string };
+  avgRating: number | null;
+  reviewCount: number;
 };
 
 export function CoachCard({ profile }: { profile: PublicCoach }) {
@@ -54,6 +58,19 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
         <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-slate-600">
           {profile.headline}
         </p>
+        <div className="stat mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+          <span className="font-semibold text-court-800">
+            Replies in {turnaroundLabel(profile.turnaroundHours)}
+          </span>
+          {profile.avgRating !== null ? (
+            <span className="text-slate-600">
+              <span className="text-ball-600">★</span>{" "}
+              {profile.avgRating.toFixed(1)} ({profile.reviewCount})
+            </span>
+          ) : (
+            <span className="text-slate-400">New on PadelPro</span>
+          )}
+        </div>
       </div>
       <dl className="stat grid grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 text-sm">
         <div className="px-6 py-3">
