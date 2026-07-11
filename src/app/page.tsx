@@ -71,6 +71,34 @@ export default async function HomePage() {
         </Reveal>
       )}
 
+      {/* The game, in motion */}
+      <Reveal>
+        <section className="relative overflow-hidden rounded-3xl bg-court-950">
+          <video
+            className="h-[340px] w-full object-cover sm:h-[440px]"
+            src="/media/hero-loop.mp4"
+            poster="/media/hero-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-court-950/90 via-court-950/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 p-6 text-white sm:p-10">
+            <p className="eyebrow text-ball-400">Every point has a lesson in it</p>
+            <h2 className="mt-2 max-w-lg text-3xl">
+              Your coach finds it — shot by shot
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-court-200">
+              Real analysis from your own footage: smash selection, court
+              coverage, the points you should have won.
+            </p>
+          </div>
+        </section>
+      </Reveal>
+
       {/* How it works — a genuine sequence, so numbered */}
       <Reveal>
         <section>
