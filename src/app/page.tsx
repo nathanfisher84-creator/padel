@@ -11,7 +11,7 @@ const STEPS = [
   {
     step: "01",
     title: "Choose your coach",
-    text: "Compare verified coach profiles side by side — experience, specialty and rates are all up front. Every coach sets their own prices.",
+    text: "Compare verified coach profiles side by side — experience, specialty and rates are all up front.",
   },
   {
     step: "02",
