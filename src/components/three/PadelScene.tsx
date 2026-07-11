@@ -5,10 +5,10 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import type { Group, Mesh } from "three";
 
 // Palette (kept in sync with tailwind.config.ts)
-const BLUSH = "#efb2bf";
-const ROSEWOOD = "#b25e5e";
-const BONE = "#ddd3c0";
-const CREAM = "#fbf5e9";
+const BALL = "#cfe23f";
+const CLUB = "#4b8765";
+const BONE = "#d8cfba";
+const CREAM = "#f8f4e9";
 
 /** A glossy padel ball: blush sphere with a cream seam. */
 function Ball() {
@@ -24,7 +24,7 @@ function Ball() {
     <group ref={ref}>
       <mesh>
         <sphereGeometry args={[1.5, 64, 64]} />
-        <meshStandardMaterial color={BLUSH} roughness={0.25} metalness={0.05} />
+        <meshStandardMaterial color={BALL} roughness={0.25} metalness={0.05} />
       </mesh>
       {/* Ball seam */}
       <mesh rotation={[Math.PI / 2.6, 0.4, 0]}>
@@ -115,12 +115,12 @@ export default function PadelScene() {
     >
       <ambientLight intensity={0.7} color={CREAM} />
       <directionalLight position={[4, 6, 5]} intensity={1.4} color={"#fff6ec"} />
-      <pointLight position={[-5, -2, -4]} intensity={0.8} color={ROSEWOOD} />
+      <pointLight position={[-5, -2, -4]} intensity={0.8} color={CLUB} />
       <Rig>
         <Ball />
         <Ring />
         <Satellite color={CREAM} radius={0.28} distance={3.3} speed={0.4} phase={0} y={0.9} />
-        <Satellite color={ROSEWOOD} radius={0.18} distance={2.9} speed={0.55} phase={2.2} y={-0.8} />
+        <Satellite color={CLUB} radius={0.18} distance={2.9} speed={0.55} phase={2.2} y={-0.8} />
         <Satellite color={BONE} radius={0.12} distance={3.6} speed={0.3} phase={4.1} y={0.2} />
       </Rig>
     </Canvas>
