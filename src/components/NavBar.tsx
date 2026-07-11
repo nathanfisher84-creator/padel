@@ -9,11 +9,11 @@ export async function NavBar() {
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-court-600 text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-court-800 font-bold text-ball-400">
             P
           </span>
-          <span>
-            Padel<span className="text-court-600">Pro</span>
+          <span style={{ fontStretch: "115%" }}>
+            Padel<span className="text-court-700">Pro</span>
           </span>
         </Link>
 

@@ -1,9 +1,29 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { CoachCard } from "@/components/CoachCard";
-import { Scene3D } from "@/components/three/Scene3D";
+import { Hero } from "@/components/home/Hero";
+import { Reveal } from "@/components/motion/Reveal";
+import { formatMoney } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
+
+const STEPS = [
+  {
+    step: "01",
+    title: "Choose your coach",
+    text: "Compare verified coach profiles side by side — experience, specialty and rates are all up front. Every coach sets their own prices.",
+  },
+  {
+    step: "02",
+    title: "Upload your match",
+    text: "Film on any phone and upload straight from the browser — full matches or drills, up to 500 MB per video.",
+  },
+  {
+    step: "03",
+    title: "Get your analysis",
+    text: "Your coach reviews the footage and sends written, personal feedback: technique, court positioning and match tactics.",
+  },
+];
 
 export default async function HomePage() {
   const featured = await db.coachProfile.findMany({
@@ -13,114 +33,97 @@ export default async function HomePage() {
     take: 3,
   });
 
+  const coachCount = featured.length;
+  const cheapest = featured.reduce(
+    (min, p) => (p.oneOffPriceCents < min.oneOffPriceCents ? p : min),
+    featured[0]
+  );
+  const fromPrice = cheapest
+    ? formatMoney(cheapest.oneOffPriceCents, cheapest.currency)
+    : "€25";
+
   return (
-    <div className="space-y-20">
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl bg-court-950 px-6 py-16 text-white sm:px-12 sm:py-24">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-20"
-          style={{
-            backgroundImage:
-              "linear-gradient(#fff2 1px, transparent 1px), linear-gradient(90deg, #fff2 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
-        <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="max-w-2xl">
-            <p className="mb-4 inline-block rounded-full bg-ball-500/20 px-3 py-1 text-sm font-semibold text-ball-400">
-              Video analysis for padel players
-            </p>
-            <h1 className="text-4xl leading-tight sm:text-5xl">
-              Get personal feedback from{" "}
-              <span className="text-ball-400">professional padel coaches</span>
-            </h1>
-            <p className="mt-4 text-lg text-court-100">
-              Record your match or training session, upload the video, and
-              receive detailed, personalised feedback from the coach you choose
-              — wherever you play.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/coaches" className="btn-primary !bg-ball-500 !text-court-950 hover:!bg-ball-400">
-                Find your coach
-              </Link>
-              <Link
-                href="/register?role=coach"
-                className="btn-secondary !border-court-700 !bg-transparent !text-white hover:!bg-court-900"
-              >
-                I&apos;m a coach — join free
-              </Link>
-            </div>
-          </div>
-          <Scene3D className="h-[260px] w-full sm:h-[320px] lg:h-[380px]" />
-        </div>
-      </section>
+    <div className="space-y-24">
+      <Hero coachCount={coachCount} fromPrice={fromPrice} />
 
-      {/* How it works */}
-      <section>
-        <h2 className="text-center text-3xl">How it works</h2>
-        <div className="mt-10 grid gap-6 sm:grid-cols-3">
-          {[
-            {
-              step: "1",
-              title: "Choose a coach",
-              text: "Browse profiles of verified padel coaches. Every coach sets their own rates — pay per video review or subscribe monthly.",
-            },
-            {
-              step: "2",
-              title: "Upload your video",
-              text: "Film your match or drills on any phone and upload it straight from the app or website.",
-            },
-            {
-              step: "3",
-              title: "Get expert feedback",
-              text: "Your coach analyses your technique, positioning and tactics, and sends you detailed feedback to level up your game.",
-            },
-          ].map((item) => (
-            <div key={item.step} className="card text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-court-100 text-xl font-bold text-court-700">
-                {item.step}
-              </div>
-              <h3 className="text-lg font-semibold">{item.title}</h3>
-              <p className="mt-2 text-sm text-slate-600">{item.text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Featured coaches */}
+      {/* Featured coaches — the marketplace leads with its supply */}
       {featured.length > 0 && (
+        <Reveal>
+          <section>
+            <div className="mb-8 flex items-end justify-between gap-4">
+              <div>
+                <p className="eyebrow text-court-600">The roster</p>
+                <h2 className="mt-2 text-3xl">Featured coaches</h2>
+              </div>
+              <Link
+                href="/coaches"
+                className="stat shrink-0 text-sm font-semibold text-court-700 hover:underline"
+              >
+                View all →
+              </Link>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((profile) => (
+                <CoachCard key={profile.id} profile={profile} />
+              ))}
+            </div>
+          </section>
+        </Reveal>
+      )}
+
+      {/* How it works — a genuine sequence, so numbered */}
+      <Reveal>
         <section>
-          <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-3xl">Featured coaches</h2>
-            <Link href="/coaches" className="font-semibold text-court-600 hover:underline">
-              View all →
-            </Link>
+          <div className="mb-10 max-w-xl">
+            <p className="eyebrow text-court-600">How it works</p>
+            <h2 className="mt-2 text-3xl">From match footage to match plan</h2>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((profile) => (
-              <CoachCard key={profile.id} profile={profile} />
+          <div className="grid gap-6 sm:grid-cols-3">
+            {STEPS.map((item) => (
+              <div key={item.step} className="card">
+                <p className="stat text-sm text-ball-600">{item.step}</p>
+                <h3 className="mt-3 text-lg font-semibold">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  {item.text}
+                </p>
+              </div>
             ))}
           </div>
         </section>
-      )}
+      </Reveal>
 
-      {/* For coaches */}
-      <section className="card sm:flex sm:items-center sm:justify-between sm:gap-8">
-        <div>
-          <h2 className="text-2xl">Are you a padel coach?</h2>
-          <p className="mt-2 max-w-xl text-slate-600">
-            Create your profile for free, set your own prices for one-off video
-            reviews and monthly coaching plans, and earn from players around the
-            world. You keep the majority of every payment.
-          </p>
-        </div>
-        <Link
-          href="/register?role=coach"
-          className="btn-primary mt-6 shrink-0 sm:mt-0"
-        >
-          Register as a coach
-        </Link>
-      </section>
+      {/* Coach recruitment */}
+      <Reveal>
+        <section className="overflow-hidden rounded-3xl bg-court-950 text-white">
+          <div className="grid items-center gap-8 px-6 py-12 sm:px-12 lg:grid-cols-[1fr_auto]">
+            <div className="max-w-xl">
+              <p className="eyebrow text-ball-400">For coaches</p>
+              <h2 className="mt-3 text-3xl">
+                You set the rates. You keep 80%.
+              </h2>
+              <p className="mt-4 text-court-200">
+                Create a free profile, name your price for single reviews and
+                monthly plans, and coach players anywhere in the world on your
+                own schedule. Every payment is split automatically — your
+                earnings are always visible in your dashboard.
+              </p>
+              <Link
+                href="/register?role=coach"
+                className="btn-primary mt-7 !bg-ball-500 !text-court-950 hover:!bg-ball-400"
+              >
+                Create your coach profile
+              </Link>
+            </div>
+            <p
+              className="stat hidden text-right font-bold leading-none text-court-800 lg:block"
+              style={{ fontSize: "9rem" }}
+              aria-hidden
+            >
+              80%
+            </p>
+          </div>
+        </section>
+      </Reveal>
     </div>
   );
 }
