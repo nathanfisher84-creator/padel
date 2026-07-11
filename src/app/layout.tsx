@@ -1,9 +1,19 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Archivo, Fraunces } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 
-const inter = Inter({ subsets: ["latin"] });
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  axes: ["opsz", "SOFT", "WONK"],
+});
 
 export const metadata: Metadata = {
   title: "PadelPro Coaching — video analysis by top padel coaches",
@@ -16,7 +26,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${archivo.variable} ${fraunces.variable} font-sans`}>
         <NavBar />
         <main className="mx-auto min-h-[calc(100vh-8rem)] w-full max-w-6xl px-4 py-8">
           {children}

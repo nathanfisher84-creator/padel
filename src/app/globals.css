@@ -3,7 +3,16 @@
 @tailwind utilities;
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-cream-100 text-slate-900 antialiased;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    @apply font-display font-semibold;
+    letter-spacing: -0.015em;
+  }
 }
 
 @layer components {
