@@ -24,6 +24,7 @@ async function main() {
     {
       email: "carlos@padelpro.local",
       name: "Carlos Mendoza",
+      photoUrl: "/avatars/carlos.svg",
       headline: "Ex-World Padel Tour player specialising in attacking net play",
       bio: "I spent 8 seasons on the World Padel Tour and now coach full time in Madrid. My video reviews focus on your smash selection (bandeja vs víbora), net positioning and transition play. Expect honest, actionable feedback with drills you can take straight to your next session.",
       location: "Madrid, Spain",
@@ -36,6 +37,7 @@ async function main() {
     {
       email: "sofia@padelpro.local",
       name: "Sofia Lindqvist",
+      photoUrl: "/avatars/sofia.svg",
       headline: "Technique-first coaching for beginners and intermediates",
       bio: "Head coach at Stockholm Padel Center. I love helping club players break through plateaus — most of my players see the biggest gains from fixing grip, preparation and footwork basics. My feedback always includes slow-motion timestamps and 2-3 practice drills.",
       location: "Stockholm, Sweden",
@@ -48,6 +50,7 @@ async function main() {
     {
       email: "diego@padelpro.local",
       name: "Diego Fernández",
+      photoUrl: "/avatars/diego.svg",
       headline: "Match tactics & doubles strategy for competitive players",
       bio: "Former Argentine national circuit player. I review full matches and break down your shot selection, court coverage with your partner, and how to win more points playing the percentages. Best suited to tournament players who already have solid fundamentals.",
       location: "Buenos Aires, Argentina",
@@ -63,7 +66,15 @@ async function main() {
     const { email, name, ...profile } = coach;
     await db.user.upsert({
       where: { email },
-      update: {},
+      // Existing demo coaches get their placeholder photo on re-seed.
+      update: {
+        coachProfile: {
+          upsert: {
+            update: { photoUrl: profile.photoUrl },
+            create: profile,
+          },
+        },
+      },
       create: {
         email,
         name,

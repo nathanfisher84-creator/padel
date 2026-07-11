@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <!-- Carlos Mendoza — Madrid. Pine court, chartreuse kit. -->
+  <rect width="400" height="400" fill="#10241a"/>
+  <g stroke="#cfe23f" stroke-opacity="0.18" stroke-width="2">
+    <line x1="0" y1="330" x2="400" y2="330"/>
+    <line x1="320" y1="0" x2="320" y2="400"/>
+  </g>
+  <!-- shoulders -->
+  <path d="M52 400 C52 316 128 284 200 284 C272 284 348 316 348 400 Z" fill="#cfe23f"/>
+  <path d="M164 284 h72 v30 c0 20 -16 32 -36 32 s-36 -12 -36 -32 Z" fill="#a5652f"/>
+  <!-- neck -->
+  <rect x="176" y="228" width="48" height="52" rx="18" fill="#b8763c"/>
+  <!-- head -->
+  <ellipse cx="200" cy="160" rx="66" ry="74" fill="#c68958"/>
+  <!-- beard -->
+  <path d="M138 178 C140 238 168 252 200 252 C232 252 260 238 262 178 C262 214 246 240 200 240 C154 240 138 214 138 178 Z" fill="#241811"/>
+  <!-- hair -->
+  <path d="M132 156 C130 96 160 76 200 76 C240 76 270 96 268 156 C268 128 248 108 200 108 C152 108 132 128 132 156 Z" fill="#241811"/>
+  <!-- ears -->
+  <circle cx="134" cy="168" r="12" fill="#b8763c"/>
+  <circle cx="266" cy="168" r="12" fill="#b8763c"/>
+  <!-- collar -->
+  <path d="M170 292 L200 322 L230 292" fill="none" stroke="#10241a" stroke-width="8" stroke-linecap="round"/>
+</svg>
