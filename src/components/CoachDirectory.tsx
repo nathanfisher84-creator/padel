@@ -1,12 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CoachProfile, User } from "@prisma/client";
-import { CoachCard } from "@/components/CoachCard";
+import { CoachCard, type PublicCoach } from "@/components/CoachCard";
 
-type Coach = CoachProfile & { user: User };
-
-export function CoachDirectory({ coaches }: { coaches: Coach[] }) {
+export function CoachDirectory({ coaches }: { coaches: PublicCoach[] }) {
   const [query, setQuery] = useState("");
 
   const visible = useMemo(() => {
