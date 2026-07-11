@@ -28,6 +28,15 @@ export function Hero({
           stagger: 0.09,
           delay: 0.1,
         });
+        // Ambient float: the ball drifts and tilts slowly, forever.
+        gsap.to("[data-ball]", {
+          y: -14,
+          rotation: 5,
+          duration: 3.2,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        });
       });
     },
     { scope: ref }
@@ -103,30 +112,28 @@ export function Hero({
             </div>
           </dl>
         </div>
-        {/* Macro loop of the ball — blends into the pine hero via a soft
-            radial mask so it reads as staged in the space, not boxed. */}
+        {/* The ball, staged in the space: soft chartreuse glow behind a
+            cut-out photo, floating gently via GSAP. */}
         <div
           data-hero
-          className="relative mx-auto aspect-square w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[400px]"
+          className="relative mx-auto aspect-square w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[380px]"
         >
-          <video
-            className="h-full w-full rounded-full object-cover"
-            style={{
-              maskImage:
-                "radial-gradient(circle, black 58%, transparent 72%)",
-              WebkitMaskImage:
-                "radial-gradient(circle, black 58%, transparent 72%)",
-            }}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
+          <div
             aria-hidden
-          >
-            <source src="/media/hero-ball.webm" type="video/webm" />
-            <source src="/media/hero-ball.mp4" type="video/mp4" />
-          </video>
+            className="absolute inset-0 scale-125"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(207,226,63,0.28) 0%, rgba(207,226,63,0.08) 45%, transparent 68%)",
+            }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            data-ball
+            src="/media/hero-ball.png"
+            alt=""
+            className="relative h-full w-full select-none"
+            draggable={false}
+          />
         </div>
       </div>
     </section>
