@@ -4,9 +4,23 @@ import { CoachDirectory } from "@/components/CoachDirectory";
 export const dynamic = "force-dynamic";
 
 export default async function CoachesPage() {
+  // Select only public fields: this list is serialized into the page for
+  // the client-side search — it must never carry the full User row.
   const coaches = await db.coachProfile.findMany({
     where: { isPublished: true },
-    include: { user: true },
+    select: {
+      id: true,
+      userId: true,
+      headline: true,
+      bio: true,
+      location: true,
+      experienceYears: true,
+      photoUrl: true,
+      oneOffPriceCents: true,
+      monthlyPriceCents: true,
+      currency: true,
+      user: { select: { name: true } },
+    },
     orderBy: { createdAt: "asc" },
   });
 

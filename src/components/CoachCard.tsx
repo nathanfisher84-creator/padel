@@ -1,12 +1,26 @@
 import Link from "next/link";
-import type { CoachProfile, User } from "@prisma/client";
 import { formatMoney } from "@/lib/format";
 
-export function CoachCard({
-  profile,
-}: {
-  profile: CoachProfile & { user: User };
-}) {
+/**
+ * The public, client-safe slice of a coach profile. Never widen this to
+ * include the full User row — these objects are serialized into the page
+ * for the searchable directory.
+ */
+export type PublicCoach = {
+  id: string;
+  userId: string;
+  headline: string;
+  bio: string;
+  location: string | null;
+  experienceYears: number;
+  photoUrl: string | null;
+  oneOffPriceCents: number;
+  monthlyPriceCents: number;
+  currency: string;
+  user: { name: string };
+};
+
+export function CoachCard({ profile }: { profile: PublicCoach }) {
   return (
     <Link
       href={`/coaches/${profile.userId}`}
