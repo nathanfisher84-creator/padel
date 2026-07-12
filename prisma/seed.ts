@@ -13,6 +13,13 @@ const db = new PrismaClient();
 const isProd = process.env.NODE_ENV === "production";
 const seedDemo = process.env.SEED_DEMO === "true" || !isProd;
 
+// ⚠️ PREVIEW ONLY: keep a demo admin (admin@padelpro.local / password123) alive
+// in production so the owner can log in and explore — including the admin
+// "view as" tool. A public-password admin must NOT exist on a real launch:
+// set this to false (or delete this block) before going live. Ignored if a
+// real admin is configured via ADMIN_EMAIL / ADMIN_PASSWORD.
+const PREVIEW_DEMO_ADMIN = true;
+
 async function main() {
   // Bootstrap a real admin from environment variables when provided (works in
   // any environment, and is the intended way to create the owner in prod).
@@ -33,11 +40,25 @@ async function main() {
   }
 
   if (!seedDemo) {
-    // Actively remove the legacy demo admin — a public-password admin must
-    // never exist in production. (Demo coaches are left so a preview stays
-    // populated; remove them before a real launch.) The env-bootstrapped
-    // admin above, if any, is preserved.
-    if (adminEmail !== "admin@padelpro.local") {
+    if (PREVIEW_DEMO_ADMIN && !adminEmail) {
+      // Preview convenience: ensure a demo admin exists with the documented
+      // password so the owner can log in (recreated if it was removed).
+      const hash = await bcrypt.hash("password123", 10);
+      await db.user.upsert({
+        where: { email: "admin@padelpro.local" },
+        update: { passwordHash: hash, role: "ADMIN" },
+        create: {
+          email: "admin@padelpro.local",
+          name: "Site Owner",
+          passwordHash: hash,
+          role: "ADMIN",
+        },
+      });
+      console.log(
+        "Preview demo admin ensured (admin@padelpro.local / password123) — remove before launch."
+      );
+    } else if (adminEmail !== "admin@padelpro.local") {
+      // No preview admin wanted: remove any legacy public-password admin.
       const removed = await db.user.deleteMany({
         where: { email: "admin@padelpro.local" },
       });
@@ -46,7 +67,7 @@ async function main() {
       }
     }
     console.log(
-      "Production seed: skipping demo accounts (set SEED_DEMO=true to include them)."
+      "Production seed: skipping demo coaches/player (set SEED_DEMO=true to include them)."
     );
     return;
   }
