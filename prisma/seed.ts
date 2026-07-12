@@ -1,12 +1,56 @@
 // Demo data: an admin, three coaches and a player, so the app is
-// explorable immediately after `npm run setup`.
-// All demo accounts use the password "password123".
+// explorable immediately after `npm run setup`. The demo accounts use the
+// password "password123" and are ONLY created in development (or when
+// SEED_DEMO=true), never automatically on a production deploy.
+//
+// In production, an admin is bootstrapped from ADMIN_EMAIL + ADMIN_PASSWORD
+// if those are set — no default-credential accounts are ever created.
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const db = new PrismaClient();
 
+const isProd = process.env.NODE_ENV === "production";
+const seedDemo = process.env.SEED_DEMO === "true" || !isProd;
+
 async function main() {
+  // Bootstrap a real admin from environment variables when provided (works in
+  // any environment, and is the intended way to create the owner in prod).
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (adminEmail && adminPassword) {
+    await db.user.upsert({
+      where: { email: adminEmail },
+      update: { passwordHash: await bcrypt.hash(adminPassword, 10) },
+      create: {
+        email: adminEmail,
+        name: "Site Owner",
+        passwordHash: await bcrypt.hash(adminPassword, 10),
+        role: "ADMIN",
+      },
+    });
+    console.log(`Ensured admin account for ${adminEmail}.`);
+  }
+
+  if (!seedDemo) {
+    // Actively remove the legacy demo admin — a public-password admin must
+    // never exist in production. (Demo coaches are left so a preview stays
+    // populated; remove them before a real launch.) The env-bootstrapped
+    // admin above, if any, is preserved.
+    if (adminEmail !== "admin@padelpro.local") {
+      const removed = await db.user.deleteMany({
+        where: { email: "admin@padelpro.local" },
+      });
+      if (removed.count) {
+        console.log("Removed legacy demo admin account (admin@padelpro.local).");
+      }
+    }
+    console.log(
+      "Production seed: skipping demo accounts (set SEED_DEMO=true to include them)."
+    );
+    return;
+  }
+
   const passwordHash = await bcrypt.hash("password123", 10);
 
   await db.user.upsert({

@@ -68,7 +68,7 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
       <div>
         <label className="label" htmlFor="bio">About you</label>
         <textarea className="input" id="bio" name="bio" rows={5} defaultValue={initial.bio} />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-slate-600">
           Emails, phone numbers and links are automatically removed from your
           public profile — players contact you by booking a review.
         </p>
@@ -136,7 +136,7 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
         </label>
         <textarea className="input" id="careerHighlights" name="careerHighlights" rows={3} defaultValue={initial.careerHighlights} placeholder={"e.g. Coached a junior national champion"} />
       </div>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-slate-600">
         {initial.isPublished
           ? "Your profile is live. Edits appear immediately."
           : "Your profile is awaiting review by our team — it will go live once approved."}

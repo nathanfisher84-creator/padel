@@ -74,7 +74,7 @@ export function FeedbackForm({
     <form onSubmit={onSubmit} className="card space-y-4">
       <div>
         <h2 className="font-semibold">Write your feedback</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           Cover technique, positioning and tactics — the player will be notified
           once you submit.
         </p>
@@ -85,15 +85,16 @@ export function FeedbackForm({
         rows={8}
         required
         minLength={10}
+        aria-label="Your feedback"
         placeholder="What's working well, what to improve, and specific drills to practise…"
       />
-      <p className="-mt-2 text-xs text-slate-500">
+      <p className="-mt-2 text-xs text-slate-600">
         To keep coaching on PadelPro, contact details (emails, phone numbers,
         links) are automatically removed from feedback.
       </p>
       <div>
         <span className="label">Video reply (optional)</span>
-        <p className="mb-2 text-xs text-slate-500">
+        <p className="mb-2 text-xs text-slate-600">
           Record yourself talking through the analysis — players love it.
         </p>
         <div className="flex flex-wrap items-center gap-3">
@@ -105,7 +106,7 @@ export function FeedbackForm({
             {videoName ? "Change video" : "Attach a video"}
           </button>
           {videoName && (
-            <span className="stat text-xs text-slate-500">{videoName}</span>
+            <span className="stat text-xs text-slate-600">{videoName}</span>
           )}
         </div>
         <input
