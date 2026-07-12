@@ -27,6 +27,9 @@ export type SessionUser = {
   email: string;
   name: string;
   role: Role;
+  /** Set when an admin is impersonating this user ("view as"). Holds the
+   *  admin's own id so the session can be restored. */
+  impersonatorId?: string;
 };
 
 export async function hashPassword(password: string): Promise<string> {
@@ -42,6 +45,7 @@ export async function createSession(user: SessionUser): Promise<void> {
     email: user.email,
     name: user.name,
     role: user.role,
+    ...(user.impersonatorId ? { imp: user.impersonatorId } : {}),
   })
     .setSubject(user.id)
     .setProtectedHeader({ alg: "HS256" })
@@ -74,6 +78,7 @@ export async function getSession(): Promise<SessionUser | null> {
       email: String(payload.email ?? ""),
       name: String(payload.name ?? ""),
       role: payload.role as Role,
+      impersonatorId: payload.imp ? String(payload.imp) : undefined,
     };
   } catch {
     return null;
