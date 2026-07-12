@@ -3,6 +3,7 @@ import { getPublicCoaches } from "@/lib/coaches";
 import { CoachTile } from "@/components/home/CoachTile";
 import { Hero } from "@/components/home/Hero";
 import { Marquee } from "@/components/home/Marquee";
+import { MissionBall } from "@/components/home/MissionBall";
 import { Reveal } from "@/components/motion/Reveal";
 
 export const dynamic = "force-dynamic";
@@ -145,27 +146,7 @@ export default async function HomePage() {
                 Browse coaches
               </Link>
             </div>
-            <div className="relative mx-auto aspect-square w-full max-w-[300px] lg:max-w-[380px]">
-              <div
-                aria-hidden
-                className="absolute inset-0 scale-125"
-                style={{
-                  background:
-                    "radial-gradient(circle, rgba(207,226,63,0.28) 0%, rgba(207,226,63,0.08) 45%, transparent 68%)",
-                }}
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/media/hero-ball.webp"
-                alt=""
-                width={720}
-                height={720}
-                loading="lazy"
-                decoding="async"
-                className="relative h-full w-full select-none"
-                draggable={false}
-              />
-            </div>
+            <MissionBall />
           </div>
         </section>
       </Reveal>
