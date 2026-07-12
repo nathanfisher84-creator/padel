@@ -89,33 +89,61 @@ export default async function HomePage() {
         </section>
       </Reveal>
 
-      {/* Scrolling ticker */}
-      <Marquee />
-
-      {/* Mission — text left, image right */}
+      {/* Mission — a standout, brand-forward band (the ball, not a coach) */}
       <Reveal>
-        <section className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
-          <div>
-            <p className="eyebrow text-court-600">Our mission</p>
-            <h2 className="mt-3 text-3xl sm:text-4xl">
-              Make real coaching reach every court
-            </h2>
-            <p className="mt-4 text-slate-600">
-              Great coaching shouldn&rsquo;t depend on living near a great coach.
-              Upload a match from any phone and get personal analysis from a
-              professional — wherever you play, whatever your level.
-            </p>
-            <Link href="/coaches" className="btn-primary mt-7">
-              Browse coaches
-            </Link>
-          </div>
-          <div className="overflow-hidden rounded-2xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/avatars/sofia.jpg"
-              alt="A PadelPro coach"
-              className="aspect-[5/4] w-full object-cover object-top"
-            />
+        <section className="full-bleed relative isolate overflow-hidden bg-court-950 text-white">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-[0.10]"
+            style={{
+              backgroundImage:
+                "linear-gradient(#fff3 1px, transparent 1px), linear-gradient(90deg, #fff3 1px, transparent 1px)",
+              backgroundSize: "56px 56px",
+            }}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full opacity-50 blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(207,226,63,0.45) 0%, transparent 70%)",
+            }}
+          />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:py-20 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <p className="eyebrow text-ball-400">Our mission</p>
+              <h2 className="mt-3 text-3xl leading-[1.05] sm:text-5xl">
+                Make real coaching reach every court
+              </h2>
+              <p className="mt-5 max-w-lg text-lg leading-relaxed text-court-200">
+                Great coaching shouldn&rsquo;t depend on living near a great
+                coach. Upload a match from any phone and get personal analysis
+                from a professional — wherever you play, whatever your level.
+              </p>
+              <Link
+                href="/coaches"
+                className="mt-8 inline-block rounded-sm bg-ball-500 px-8 py-3.5 text-sm font-semibold uppercase tracking-[0.15em] text-court-950 transition hover:bg-ball-400"
+              >
+                Browse coaches
+              </Link>
+            </div>
+            <div className="relative mx-auto aspect-square w-full max-w-[300px] lg:max-w-[380px]">
+              <div
+                aria-hidden
+                className="absolute inset-0 scale-125"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(207,226,63,0.28) 0%, rgba(207,226,63,0.08) 45%, transparent 68%)",
+                }}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/media/hero-ball.png"
+                alt=""
+                className="relative h-full w-full select-none"
+                draggable={false}
+              />
+            </div>
           </div>
         </section>
       </Reveal>
@@ -147,6 +175,9 @@ export default async function HomePage() {
           </div>
         </section>
       </Reveal>
+
+      {/* Scrolling ticker */}
+      <Marquee />
 
       {/* How it works */}
       <Reveal>
