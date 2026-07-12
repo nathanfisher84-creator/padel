@@ -8,12 +8,17 @@ const COOKIE_NAME = "padel_session";
 const SESSION_DAYS = 30;
 
 function secretKey(): Uint8Array {
-  if (!process.env.AUTH_SECRET && process.env.NODE_ENV === "production") {
-    console.error(
-      "SECURITY: AUTH_SECRET is not set — sessions are signed with a public default. Set AUTH_SECRET immediately."
-    );
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      // Never sign or verify sessions with a public default in production —
+      // that would let anyone forge an admin token. Fail closed instead.
+      throw new Error(
+        "AUTH_SECRET is not set. Refusing to run authentication in production without it."
+      );
+    }
+    return new TextEncoder().encode("dev-only-secret-change-me");
   }
-  const secret = process.env.AUTH_SECRET ?? "dev-only-secret-change-me";
   return new TextEncoder().encode(secret);
 }
 

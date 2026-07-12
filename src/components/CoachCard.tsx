@@ -37,6 +37,10 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
             <img
               src={profile.photoUrl}
               alt=""
+              width={112}
+              height={112}
+              loading="lazy"
+              decoding="async"
               className="h-14 w-14 shrink-0 rounded-full border border-slate-200 object-cover"
             />
           ) : (
@@ -48,7 +52,7 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
             <h3 className="truncate text-lg font-semibold group-hover:text-court-700">
               {profile.user.name}
             </h3>
-            <p className="stat truncate text-xs uppercase tracking-wide text-slate-500">
+            <p className="stat truncate text-xs uppercase tracking-wide text-slate-600">
               {profile.location || "Online coaching"}
               {profile.experienceYears > 0 &&
                 ` · ${profile.experienceYears} yrs`}
@@ -68,13 +72,13 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
               {profile.avgRating.toFixed(1)} ({profile.reviewCount})
             </span>
           ) : (
-            <span className="text-slate-400">New on PadelPro</span>
+            <span className="text-slate-500">New on PadelPro</span>
           )}
         </div>
       </div>
       <dl className="stat grid grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 text-sm">
         <div className="px-6 py-3">
-          <dt className="text-[11px] uppercase tracking-wide text-slate-500">
+          <dt className="text-[11px] uppercase tracking-wide text-slate-600">
             Video review
           </dt>
           <dd className="mt-0.5 font-semibold text-court-800">
@@ -82,7 +86,7 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
           </dd>
         </div>
         <div className="px-6 py-3">
-          <dt className="text-[11px] uppercase tracking-wide text-slate-500">
+          <dt className="text-[11px] uppercase tracking-wide text-slate-600">
             Monthly plan
           </dt>
           <dd className="mt-0.5 font-semibold text-court-800">

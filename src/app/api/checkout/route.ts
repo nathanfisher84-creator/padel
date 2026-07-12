@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { appUrl, stripeEnabled } from "@/lib/config";
+import { appUrl, stripeEnabled, demoPaymentsAllowed } from "@/lib/config";
 import { getStripe } from "@/lib/stripe";
 import { recordOneOffPayment, recordSubscriptionPayment } from "@/lib/payments";
 import { Role } from "@/lib/constants";
@@ -48,6 +48,14 @@ export async function POST(req: Request) {
     plan === "one_off" ? profile.oneOffPriceCents : profile.monthlyPriceCents;
 
   if (!stripeEnabled()) {
+    if (!demoPaymentsAllowed()) {
+      // Production with no Stripe keys and demo mode not explicitly enabled:
+      // refuse rather than hand out free credits.
+      return NextResponse.json(
+        { error: "Payments are not available right now. Please try again later." },
+        { status: 503 }
+      );
+    }
     // Demo mode: mark the payment as completed right away.
     if (plan === "one_off") {
       await recordOneOffPayment({

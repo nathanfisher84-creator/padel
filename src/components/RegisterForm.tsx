@@ -122,7 +122,7 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
             }`}
           >
             <span className="block font-semibold">{title}</span>
-            <span className="mt-1 block text-xs text-slate-500">{sub}</span>
+            <span className="mt-1 block text-xs text-slate-600">{sub}</span>
           </button>
         ))}
       </div>
@@ -234,7 +234,7 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
             <hr className="border-slate-200" />
             <div>
               <span className="label">Profile photo (required)</span>
-              <p className="mb-3 text-xs text-slate-500">
+              <p className="mb-3 text-xs text-slate-600">
                 Players want to see who&apos;s coaching them. Take a selfie
                 with your camera or choose a picture.
               </p>
@@ -244,7 +244,7 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
               <span className="label">Intro video</span>
               <IntroVideoInput onChange={setIntroVideo} />
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               Joining is free. Every coach profile is reviewed by our team
               before going live — you&apos;ll see the status in your dashboard,
               along with your full payment terms.
@@ -262,7 +262,7 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
                 ? "Create coach account"
                 : "Create player account"}
         </button>
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-slate-600">
           Already registered?{" "}
           <Link href="/login" className="font-semibold text-court-600 hover:underline">
             Log in

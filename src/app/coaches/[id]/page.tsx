@@ -52,8 +52,47 @@ export default async function CoachDetailPage({
     }),
   ]);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: coach.name,
+    jobTitle: "Padel coach",
+    description: profile.headline,
+    ...(profile.photoUrl ? { image: profile.photoUrl } : {}),
+    ...(profile.location ? { homeLocation: profile.location } : {}),
+    makesOffer: [
+      {
+        "@type": "Offer",
+        name: "Single video review",
+        price: (profile.oneOffPriceCents / 100).toFixed(2),
+        priceCurrency: profile.currency,
+      },
+      {
+        "@type": "Offer",
+        name: "Monthly coaching plan",
+        price: (profile.monthlyPriceCents / 100).toFixed(2),
+        priceCurrency: profile.currency,
+      },
+    ],
+    ...(ratingAgg._count.rating > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: ratingAgg._avg.rating?.toFixed(1),
+            reviewCount: ratingAgg._count.rating,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr,380px]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <div>
         <div className="flex items-center gap-5">
           {profile.photoUrl ? (
@@ -70,7 +109,7 @@ export default async function CoachDetailPage({
           )}
           <div>
             <h1 className="text-3xl font-bold">{coach.name}</h1>
-            <p className="text-slate-500">
+            <p className="text-slate-600">
               {profile.location || "Online coaching"}
               {profile.experienceYears > 0 &&
                 ` · ${profile.experienceYears} years of experience`}
@@ -162,7 +201,7 @@ export default async function CoachDetailPage({
                     <span className="text-slate-300">{"★".repeat(5 - r.rating)}</span>
                   </p>
                   <p className="mt-1 text-sm text-slate-600">{r.comment}</p>
-                  <p className="stat mt-1 text-xs uppercase tracking-wide text-slate-400">
+                  <p className="stat mt-1 text-xs uppercase tracking-wide text-slate-500">
                     {r.player.name.split(" ")[0]}
                   </p>
                 </li>
@@ -199,7 +238,7 @@ export default async function CoachDetailPage({
           <h3 className="mt-2 text-lg font-semibold">Monthly coaching</h3>
           <p className="mt-1 text-3xl font-extrabold text-court-700">
             {formatMoney(profile.monthlyPriceCents, profile.currency)}
-            <span className="text-base font-medium text-slate-500"> / month</span>
+            <span className="text-base font-medium text-slate-600"> / month</span>
           </p>
           <p className="mt-2 text-sm text-slate-600">
             Up to {profile.monthlyVideoLimit} video reviews every month.

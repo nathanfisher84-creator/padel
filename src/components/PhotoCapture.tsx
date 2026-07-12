@@ -58,7 +58,7 @@ export function PhotoCapture({
         ) : (
           <div
             aria-hidden
-            className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-slate-50 text-slate-400"
+            className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-slate-50 text-slate-500"
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
               <path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />

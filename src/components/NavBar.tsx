@@ -34,7 +34,7 @@ export async function NavBar() {
               >
                 Dashboard
               </Link>
-              <span className="hidden text-sm text-slate-500 sm:inline">
+              <span className="hidden text-sm text-slate-600 sm:inline">
                 {session.name}
               </span>
               <LogoutButton />

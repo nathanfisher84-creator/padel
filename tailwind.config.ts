@@ -26,7 +26,10 @@ const config: Config = {
           300: "#e6ef86",
           400: "#dce75f",
           500: "#cfe23f",
-          600: "#7c8f0e",
+          // 600 is used only as text on light surfaces; darkened from #7c8f0e
+          // to clear WCAG AA (~6:1 on white / cream). The chartreuse accent
+          // background stays ball-500.
+          600: "#5c6a0c",
         },
         slate: {
           50: "#f7f6f1",

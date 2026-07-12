@@ -67,7 +67,7 @@ export function IntroVideoInput({
         >
           {label && !label.startsWith("Current") ? "Change video" : "Upload a video"}
         </button>
-        {label && <span className="stat text-xs text-slate-500">{label}</span>}
+        {label && <span className="stat text-xs text-slate-600">{label}</span>}
       </div>
       <input
         ref={input}
@@ -76,7 +76,7 @@ export function IntroVideoInput({
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
-      <p className="mt-2 text-xs text-slate-500">
+      <p className="mt-2 text-xs text-slate-600">
         Optional · up to {fmt(MAX_INTRO_SECONDS)} · introduce yourself and your
         coaching style to players.
       </p>

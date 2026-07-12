@@ -21,6 +21,17 @@ export function stripeEnabled(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
 
+/**
+ * Demo payment mode marks purchases PAID instantly with no real charge — for
+ * local development and (opt-in) previews only. It must never grant free
+ * credits on a production deployment unless explicitly enabled with
+ * ALLOW_DEMO_PAYMENTS=true.
+ */
+export function demoPaymentsAllowed(): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  return process.env.ALLOW_DEMO_PAYMENTS === "true";
+}
+
 export function appUrl(): string {
   return process.env.APP_URL ?? "http://localhost:3000";
 }

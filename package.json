@@ -9,12 +9,11 @@
     "lint": "next lint",
     "setup": "prisma generate && prisma db push && prisma db seed",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate --schema prisma/schema.postgres.prisma && prisma db push --schema prisma/schema.postgres.prisma && prisma db seed && next build"
+    "vercel-build": "prisma generate --schema prisma/schema.postgres.prisma && prisma db push --schema prisma/schema.postgres.prisma --accept-data-loss && prisma db seed && next build"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@prisma/client": "^6.19.3",
-    "@react-three/fiber": "^8.17.10",
     "@vercel/blob": "^2.6.1",
     "bcryptjs": "^3.0.3",
     "gsap": "^3.15.0",
@@ -23,7 +22,6 @@
     "react": "^18",
     "react-dom": "^18",
     "stripe": "^22.3.1",
-    "three": "^0.170.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -31,7 +29,6 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@types/three": "^0.170.0",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
     "postcss": "^8",

@@ -72,7 +72,7 @@ async function PlayerDashboard({ userId, name }: { userId: string; name: string 
       <section>
         <h2 className="text-xl font-semibold">Available reviews</h2>
         {entitlements.length === 0 ? (
-          <div className="card mt-4 text-sm text-slate-500">
+          <div className="card mt-4 text-sm text-slate-600">
             You have no review credits or active plans.{" "}
             <Link href="/coaches" className="font-semibold text-court-600 hover:underline">
               Choose a coach
@@ -107,7 +107,7 @@ async function PlayerDashboard({ userId, name }: { userId: string; name: string 
       <section>
         <h2 className="text-xl font-semibold">My videos</h2>
         {submissions.length === 0 ? (
-          <div className="card mt-4 text-sm text-slate-500">
+          <div className="card mt-4 text-sm text-slate-600">
             No videos yet. Once you have a credit or plan, upload your first video.
           </div>
         ) : (
@@ -120,7 +120,7 @@ async function PlayerDashboard({ userId, name }: { userId: string; name: string 
               >
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{s.title}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600">
                     Coach {s.coach.name} · {formatDate(s.createdAt)}
                   </p>
                 </div>
@@ -146,7 +146,7 @@ async function PlayerDashboard({ userId, name }: { userId: string; name: string 
           <h2 className="text-xl font-semibold">Recent payments</h2>
           <div className="card mt-4 overflow-x-auto !p-0">
             <table className="w-full text-sm">
-              <thead className="border-b border-slate-200 text-left text-slate-500">
+              <thead className="border-b border-slate-200 text-left text-slate-600">
                 <tr>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Coach</th>
@@ -247,17 +247,17 @@ async function CoachDashboard({ userId }: { userId: string }) {
 
       <section className="grid gap-4 sm:grid-cols-3">
         <div className="card">
-          <p className="text-sm text-slate-500">Your earnings (after platform fee)</p>
+          <p className="text-sm text-slate-600">Your earnings (after platform fee)</p>
           <p className="mt-1 text-3xl font-extrabold text-court-700">
             {formatMoney(earnings._sum.coachCents ?? 0, currency)}
           </p>
         </div>
         <div className="card">
-          <p className="text-sm text-slate-500">Active subscribers</p>
+          <p className="text-sm text-slate-600">Active subscribers</p>
           <p className="mt-1 text-3xl font-extrabold text-court-700">{activeSubs}</p>
         </div>
         <div className="card">
-          <p className="text-sm text-slate-500">Videos awaiting your feedback</p>
+          <p className="text-sm text-slate-600">Videos awaiting your feedback</p>
           <p className="mt-1 text-3xl font-extrabold text-court-700">{queue.length}</p>
         </div>
       </section>
@@ -265,7 +265,7 @@ async function CoachDashboard({ userId }: { userId: string }) {
       <section>
         <h2 className="text-xl font-semibold">Review queue</h2>
         {queue.length === 0 ? (
-          <div className="card mt-4 text-sm text-slate-500">
+          <div className="card mt-4 text-sm text-slate-600">
             All caught up — no videos waiting for feedback. 🏆
           </div>
         ) : (
@@ -278,7 +278,7 @@ async function CoachDashboard({ userId }: { userId: string }) {
               >
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{s.title}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-600">
                     From {s.player.name} · {formatDate(s.createdAt)}
                   </p>
                 </div>
@@ -301,7 +301,7 @@ async function CoachDashboard({ userId }: { userId: string }) {
               >
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{s.title}</p>
-                  <p className="text-sm text-slate-500">From {s.player.name}</p>
+                  <p className="text-sm text-slate-600">From {s.player.name}</p>
                 </div>
                 <span className="badge bg-ball-500/20 text-ball-600">Reviewed</span>
               </Link>
@@ -354,10 +354,10 @@ async function AdminDashboard() {
                 <div className="min-w-0">
                   <p className="font-semibold">
                     {p.user.name}{" "}
-                    <span className="text-sm font-normal text-slate-500">· {p.user.email}</span>
+                    <span className="text-sm font-normal text-slate-600">· {p.user.email}</span>
                   </p>
                   <p className="mt-0.5 truncate text-sm text-slate-600">{p.headline}</p>
-                  <p className="stat mt-0.5 text-xs uppercase tracking-wide text-slate-400">
+                  <p className="stat mt-0.5 text-xs uppercase tracking-wide text-slate-500">
                     {p.location ?? "No location"} · {p.experienceYears} yrs
                     {p.languages ? ` · ${p.languages}` : ""}
                   </p>
@@ -377,7 +377,7 @@ async function AdminDashboard() {
           ["Payments", String(totals._count)],
         ].map(([label, value]) => (
           <div key={label} className="card">
-            <p className="text-sm text-slate-500">{label}</p>
+            <p className="text-sm text-slate-600">{label}</p>
             <p className="mt-1 text-2xl font-extrabold text-court-700">{value}</p>
           </div>
         ))}
@@ -389,7 +389,7 @@ async function AdminDashboard() {
           ["Video submissions", submissionCount],
         ].map(([label, value]) => (
           <div key={label} className="card">
-            <p className="text-sm text-slate-500">{label}</p>
+            <p className="text-sm text-slate-600">{label}</p>
             <p className="mt-1 text-2xl font-extrabold">{value}</p>
           </div>
         ))}
@@ -398,7 +398,7 @@ async function AdminDashboard() {
         <h2 className="text-xl font-semibold">Recent payments</h2>
         <div className="card mt-4 overflow-x-auto !p-0">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 text-left text-slate-500">
+            <thead className="border-b border-slate-200 text-left text-slate-600">
               <tr>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Player</th>

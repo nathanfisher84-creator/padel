@@ -18,6 +18,14 @@ export async function recordOneOffPayment(opts: {
   currency: string;
   stripeRef?: string;
 }) {
+  // Idempotency: Stripe delivers webhooks at-least-once, so ignore an event
+  // we've already fulfilled (same stripeRef) instead of double-crediting.
+  if (opts.stripeRef) {
+    const existing = await db.payment.findUnique({
+      where: { stripeRef: opts.stripeRef },
+    });
+    if (existing) return existing;
+  }
   const { platformFeeCents, coachCents } = splitRevenue(opts.amountCents);
   return db.payment.create({
     data: {
@@ -46,6 +54,20 @@ export async function recordSubscriptionPayment(opts: {
   stripeRef?: string;
   stripeSubId?: string;
 }) {
+  // Idempotency: skip a subscription cycle we've already recorded so a
+  // redelivered invoice doesn't extend the period or double-credit.
+  if (opts.stripeRef) {
+    const existing = await db.payment.findUnique({
+      where: { stripeRef: opts.stripeRef },
+    });
+    if (existing) {
+      return db.subscription.findUnique({
+        where: {
+          playerId_coachId: { playerId: opts.playerId, coachId: opts.coachId },
+        },
+      });
+    }
+  }
   const { platformFeeCents, coachCents } = splitRevenue(opts.amountCents);
   const periodEnd = new Date();
   periodEnd.setMonth(periodEnd.getMonth() + 1);

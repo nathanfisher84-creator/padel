@@ -45,7 +45,7 @@ export default async function SubmissionPage({
               : "Awaiting feedback"}
           </span>
         </div>
-        <p className="mt-1 text-slate-500">
+        <p className="mt-1 text-slate-600">
           {submission.player.name} → Coach {submission.coach.name} ·{" "}
           {formatDate(submission.createdAt)}
         </p>
@@ -85,7 +85,7 @@ export default async function SubmissionPage({
           <h2 className="font-semibold">
             Feedback from Coach {submission.coach.name}
           </h2>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-600">
             {formatDate(submission.feedback.createdAt)}
           </p>
           {submission.feedback.videoUrl && (
@@ -106,7 +106,7 @@ export default async function SubmissionPage({
           useBlobStorage={blobUploadsEnabled()}
         />
       ) : (
-        <div className="card text-sm text-slate-500">
+        <div className="card text-sm text-slate-600">
           Coach {submission.coach.name} hasn&apos;t reviewed this video yet —
           you&apos;ll see the feedback here as soon as it&apos;s ready.
         </div>

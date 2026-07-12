@@ -84,7 +84,7 @@ model Payment {
   coachCents       Int
   currency         String
   status           String // PENDING | PAID | FAILED
-  stripeRef        String?
+  stripeRef        String?       @unique
   subscriptionId   String?
   subscription     Subscription? @relation(fields: [subscriptionId], references: [id])
   createdAt        DateTime      @default(now())

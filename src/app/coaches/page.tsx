@@ -22,7 +22,7 @@ export default async function CoachesPage() {
       </p>
 
       {coaches.length === 0 ? (
-        <div className="card mt-10 text-center text-slate-500">
+        <div className="card mt-10 text-center text-slate-600">
           No coaches have joined yet — check back soon, or{" "}
           <a
             href="/register?role=coach"
