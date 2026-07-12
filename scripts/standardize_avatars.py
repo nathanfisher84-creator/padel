@@ -36,8 +36,9 @@ PROMPT = (
     "forest-green studio backdrop (deep pine green around #10241a with a subtle "
     "lighter green vignette). Frame it as a centred head-and-shoulders portrait, "
     "1:1 square aspect ratio, the face in the upper-middle, with even, flattering "
-    "studio lighting and gentle depth of field. Keep it a natural, realistic "
-    "photograph — not illustrated, cartoon or over-retouched."
+    "studio lighting and gentle depth of field. Dress them in a plain, solid-colour "
+    "athletic top with NO logos, text, numbers or brand marks of any kind. Keep it a "
+    "natural, realistic photograph — not illustrated, cartoon or over-retouched."
 )
 
 ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
