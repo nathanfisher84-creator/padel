@@ -45,8 +45,15 @@ export default function RootLayout({
         <footer className="border-t border-slate-200 bg-court-950 text-court-100">
           <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-3">
             <div>
-              <p className="text-lg font-bold text-white">
-                Padel<span className="text-ball-400">Pro</span>
+              <p className="flex items-center gap-2 text-lg font-bold text-white">
+                <svg viewBox="0 0 64 64" className="h-6 w-6" aria-hidden>
+                  <circle cx="32" cy="32" r="27" fill="#cfe23f" />
+                  <path d="M13 15 C30 26 34 38 51 49" stroke="#10241a" strokeWidth="6.5" fill="none" strokeLinecap="round" />
+                  <path d="M51 15 C34 26 30 38 13 49" stroke="#fffefa" strokeWidth="6.5" fill="none" strokeLinecap="round" />
+                </svg>
+                <span>
+                  Padel<span className="text-ball-400">Pro</span>
+                </span>
               </p>
               <p className="mt-3 max-w-xs text-sm text-court-300">
                 Video analysis by professional padel coaches. Film your match,

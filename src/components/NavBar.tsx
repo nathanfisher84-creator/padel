@@ -9,9 +9,11 @@ export async function NavBar() {
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-court-800 font-bold text-ball-400">
-            P
-          </span>
+<svg viewBox="0 0 64 64" className="h-8 w-8 shrink-0" aria-hidden>
+            <circle cx="32" cy="32" r="27" fill="#cfe23f" />
+            <path d="M13 15 C30 26 34 38 51 49" stroke="#10241a" strokeWidth="6.5" fill="none" strokeLinecap="round" />
+            <path d="M51 15 C34 26 30 38 13 49" stroke="#fffefa" strokeWidth="6.5" fill="none" strokeLinecap="round" />
+          </svg>
           <span style={{ fontStretch: "115%" }}>
             Padel<span className="text-court-700">Pro</span>
           </span>
