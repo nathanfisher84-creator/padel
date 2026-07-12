@@ -20,6 +20,9 @@ export function Marquee() {
         {row.map((item, i) => (
           <span
             key={i}
+            // The list is duplicated only for the visual loop — hide the
+            // second copy from screen readers so items aren't read twice.
+            aria-hidden={i >= ITEMS.length}
             className="flex items-center gap-10 text-sm font-semibold uppercase tracking-[0.22em] text-court-100"
           >
             {item}

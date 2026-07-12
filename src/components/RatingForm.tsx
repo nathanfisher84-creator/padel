@@ -37,7 +37,7 @@ export function RatingForm({ submissionId }: { submissionId: string }) {
     <div className="card space-y-3">
       <div>
         <h2 className="font-semibold">How was this review?</h2>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-600">
           Your rating is shown on the coach&apos;s profile and helps other
           players choose.
         </p>
@@ -65,6 +65,7 @@ export function RatingForm({ submissionId }: { submissionId: string }) {
         className="input"
         rows={2}
         maxLength={1000}
+        aria-label="Comment (optional)"
         placeholder="Anything other players should know? (optional)"
         value={comment}
         onChange={(e) => setComment(e.target.value)}

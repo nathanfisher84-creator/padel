@@ -45,7 +45,7 @@ export function PurchasePanel({
 
   if (loggedIn && !isPlayer) {
     return (
-      <p className="text-center text-sm text-slate-500">
+      <p className="text-center text-sm text-slate-600">
         You are logged in as a coach — only player accounts can purchase coaching.
       </p>
     );
@@ -69,7 +69,7 @@ export function PurchasePanel({
       </button>
       {error && <p className="text-sm text-red-600">{error}</p>}
       {!loggedIn && (
-        <p className="text-center text-xs text-slate-500">
+        <p className="text-center text-xs text-slate-600">
           You&apos;ll be asked to log in or create a free account first.
         </p>
       )}

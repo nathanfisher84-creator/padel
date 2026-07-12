@@ -49,7 +49,7 @@ function LoginForm() {
         <button className="btn-primary w-full" disabled={busy}>
           {busy ? "Logging in…" : "Log in"}
         </button>
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-slate-600">
           No account yet?{" "}
           <Link href="/register" className="font-semibold text-court-600 hover:underline">
             Sign up free

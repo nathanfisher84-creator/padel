@@ -16,7 +16,11 @@ export function CoachTile({ profile }: { profile: PublicCoach }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={profile.photoUrl}
-            alt={`Photo of ${profile.user.name}`}
+            alt=""
+            width={800}
+            height={800}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.04]"
           />
         ) : (
@@ -33,7 +37,7 @@ export function CoachTile({ profile }: { profile: PublicCoach }) {
       <h3 className="mt-3 text-lg transition group-hover:text-court-700">
         {profile.user.name}
       </h3>
-      <p className="line-clamp-1 text-sm text-slate-500">
+      <p className="line-clamp-1 text-sm text-slate-600">
         {profile.location || "Online coaching"}
         {profile.experienceYears > 0 && ` · ${profile.experienceYears} yrs`}
       </p>

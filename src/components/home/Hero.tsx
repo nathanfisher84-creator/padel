@@ -39,16 +39,26 @@ export function Hero() {
     >
       {/* Two-panel imagery: a padel action shot and a coach portrait */}
       <div className="absolute inset-0 grid grid-cols-1 sm:grid-cols-2">
+        {/* LCP image: load it eagerly and at high priority. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/media/hero-poster.jpg"
           alt=""
+          width={1280}
+          height={720}
+          fetchPriority="high"
+          decoding="async"
           className="h-full w-full object-cover"
         />
+        {/* Second panel only shows at sm+; lazy so phones don't download it. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/avatars/carlos.jpg"
           alt=""
+          width={800}
+          height={800}
+          loading="lazy"
+          decoding="async"
           className="hidden h-full w-full object-cover object-top sm:block"
         />
       </div>

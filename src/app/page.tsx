@@ -51,8 +51,26 @@ const FAQ = [
 export default async function HomePage() {
   const featured = await getPublicCoaches(3);
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
   return (
     <div className="space-y-24">
+      <script
+        type="application/ld+json"
+        // JSON-LD is our own trusted data; escaping "<" prevents any chance of
+        // breaking out of the script tag.
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <Hero />
 
       {/* Brand statement + the roster (the reference's statement → grid) */}
@@ -62,7 +80,7 @@ export default async function HomePage() {
             <h2 className="text-3xl sm:text-5xl">
               Designed to make you better
             </h2>
-            <p className="mt-5 text-xs uppercase leading-relaxed tracking-[0.16em] text-slate-500 sm:text-sm">
+            <p className="mt-5 text-xs uppercase leading-relaxed tracking-[0.16em] text-slate-600 sm:text-sm">
               Hand-picked professional coaches. Analysis of your own footage. A
               clear plan for your next match — not vague encouragement.
             </p>
@@ -138,8 +156,12 @@ export default async function HomePage() {
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/media/hero-ball.png"
+                src="/media/hero-ball.webp"
                 alt=""
+                width={720}
+                height={720}
+                loading="lazy"
+                decoding="async"
                 className="relative h-full w-full select-none"
                 draggable={false}
               />
@@ -155,7 +177,11 @@ export default async function HomePage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/avatars/diego.jpg"
-              alt="A PadelPro coach"
+              alt="Diego Fernández, a PadelPro coach"
+              width={800}
+              height={800}
+              loading="lazy"
+              decoding="async"
               className="aspect-[5/4] w-full object-cover object-top"
             />
           </div>

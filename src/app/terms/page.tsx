@@ -75,7 +75,7 @@ export default function TermsPage() {
     <div className="mx-auto max-w-3xl">
       <p className="eyebrow text-court-600">Legal</p>
       <h1 className="mt-2 text-3xl sm:text-4xl">Terms of service</h1>
-      <p className="stat mt-3 text-xs uppercase tracking-wide text-slate-500">
+      <p className="stat mt-3 text-xs uppercase tracking-wide text-slate-600">
         Last updated 11 July 2026
       </p>
       <div className="mt-8 space-y-8">

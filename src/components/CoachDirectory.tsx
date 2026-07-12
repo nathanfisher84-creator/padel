@@ -28,14 +28,14 @@ export function CoachDirectory({ coaches }: { coaches: PublicCoach[] }) {
           className="input sm:max-w-sm"
           aria-label="Search coaches"
         />
-        <p className="stat text-xs uppercase tracking-wide text-slate-500">
+        <p className="stat text-xs uppercase tracking-wide text-slate-600">
           {visible.length} of {coaches.length}{" "}
           {coaches.length === 1 ? "coach" : "coaches"}
         </p>
       </div>
 
       {visible.length === 0 ? (
-        <div className="card mt-8 text-center text-slate-500">
+        <div className="card mt-8 text-center text-slate-600">
           No coaches match “{query}”. Clear the search to see everyone.
         </div>
       ) : (

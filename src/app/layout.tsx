@@ -16,8 +16,18 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  weight: ["500", "600", "700", "800"],
+  // Only the weights the headings actually use (h1 700, h2/h3 600).
+  weight: ["600", "700"],
 });
+
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "PadelPro Coaching",
+  url: process.env.APP_URL ?? "https://padel-bay-delta.vercel.app",
+  description:
+    "A marketplace connecting padel players with professional coaches for personal video analysis.",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "https://padel-bay-delta.vercel.app"),
@@ -41,6 +51,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(orgJsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-court-950 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+        >
+          Skip to content
+        </a>
         <div className="bg-court-950 text-white">
           <p className="mx-auto max-w-6xl px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-court-100">
             Curated padel coaches · Feedback in days, not weeks · Now accepting
@@ -48,7 +70,10 @@ export default function RootLayout({
           </p>
         </div>
         <NavBar />
-        <main className="mx-auto min-h-[calc(100vh-8rem)] w-full max-w-6xl px-4 py-8">
+        <main
+          id="main"
+          className="mx-auto min-h-[calc(100vh-8rem)] w-full max-w-6xl px-4 py-8"
+        >
           {children}
         </main>
         <footer className="border-t border-slate-200 bg-court-950 text-court-100">
