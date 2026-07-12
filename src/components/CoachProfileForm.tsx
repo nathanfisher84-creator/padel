@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 type ProfileValues = {
   headline: string;
+  bestFor: string;
   bio: string;
   location: string;
   experienceYears: number;
@@ -36,6 +37,7 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         headline: form.get("headline"),
+        bestFor: form.get("bestFor") || undefined,
         bio: form.get("bio"),
         location: form.get("location") || undefined,
         experienceYears: form.get("experienceYears"),
@@ -64,6 +66,19 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
       <div>
         <label className="label" htmlFor="headline">Headline</label>
         <input className="input" id="headline" name="headline" required defaultValue={initial.headline} />
+      </div>
+      <div>
+        <label className="label" htmlFor="bestFor">
+          Best for <span className="font-normal text-slate-500">(short — shown on your card)</span>
+        </label>
+        <input
+          className="input"
+          id="bestFor"
+          name="bestFor"
+          maxLength={80}
+          defaultValue={initial.bestFor}
+          placeholder="e.g. attacking net play & competitive players"
+        />
       </div>
       <div>
         <label className="label" htmlFor="bio">About you</label>

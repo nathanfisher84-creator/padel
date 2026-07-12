@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPublicCoaches } from "@/lib/coaches";
+import { formatMoney } from "@/lib/format";
 import { CoachTile } from "@/components/home/CoachTile";
 import { Hero } from "@/components/home/Hero";
 import { Marquee } from "@/components/home/Marquee";
@@ -45,12 +46,60 @@ const FAQ = [
   },
   {
     q: "How do payments work?",
-    a: "You pay securely up front for the coach and plan you choose. Coaches are paid their share automatically after our platform fee — you never handle anything off-platform.",
+    a: "You pay securely online when you choose your coach and review type. Your coach only receives your video after payment is confirmed. Prices are shown up front, and one-off reviews don't require a subscription.",
   },
+];
+
+const LEVELS = [
+  {
+    title: "Beginners",
+    text: "Fix your grip, movement and court positioning — the fundamentals that unlock everything else.",
+  },
+  {
+    title: "Club players",
+    text: "Stop repeating the same mistakes. See the patterns quietly costing you matches and how to break them.",
+  },
+  {
+    title: "Competitive players",
+    text: "Sharpen tactics, shot selection and partner coverage to win the points that actually decide games.",
+  },
+];
+
+// An illustrative example of a review, so players can see what they get back.
+const SAMPLE_FIXES = [
+  "Your bandeja is landing short — you're standing too upright. Set up a step deeper and drive through the ball.",
+  "You're leaving the middle open on defence. Recover to the centre after every wide ball.",
+  "Going for the smash winner too early — take the víbora when the lob is deep and keep the point alive.",
+];
+const SAMPLE_COMMENTS = [
+  { t: "00:42", text: "Good court position — but watch your grip on the backhand volley." },
+  { t: "01:15", text: "This is the bandeja to fix — see how it sits up for them?" },
+  { t: "02:03", text: "Great point construction here, you built it patiently." },
+  { t: "03:30", text: "Recover to the middle — you got caught wide and paid for it." },
+];
+const SAMPLE_DRILLS = [
+  "Bandeja depth drill — 20 reps landing past the service line (10 min)",
+  "Middle-recovery ladder after wide balls (10 min)",
+  "Víbora-vs-smash decision drill with a partner (15 min)",
 ];
 
 export default async function HomePage() {
   const featured = await getPublicCoaches(3);
+
+  const cheapest = featured.reduce(
+    (min, p) => (p.oneOffPriceCents < min.oneOffPriceCents ? p : min),
+    featured[0]
+  );
+  const fromPrice = cheapest
+    ? formatMoney(cheapest.oneOffPriceCents, cheapest.currency)
+    : "€25";
+  const TRUST = [
+    "Vetted coaches",
+    `From ${fromPrice}`,
+    "One-off reviews",
+    "Feedback in days",
+    "Any level welcome",
+  ];
 
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -73,6 +122,118 @@ export default async function HomePage() {
         }}
       />
       <Hero />
+
+      {/* Trust strip — promises straight under the hero */}
+      <Reveal>
+        <ul className="-mt-10 grid grid-cols-2 gap-x-6 gap-y-3 rounded-2xl border border-bone-200 bg-white px-6 py-5 text-sm shadow-sm sm:grid-cols-5 sm:gap-4">
+          {TRUST.map((item) => (
+            <li key={item} className="flex items-center gap-2 font-medium text-slate-700">
+              <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0 text-court-600" fill="currentColor" aria-hidden>
+                <path fillRule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 10.7a1 1 0 1 1 1.4-1.4l3.1 3.1 6.8-6.8a1 1 0 0 1 1.4 0Z" clipRule="evenodd" />
+              </svg>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </Reveal>
+
+      {/* What you get back — show the result before asking them to choose */}
+      <Reveal>
+        <section>
+          <div className="mb-8 max-w-2xl">
+            <p className="eyebrow text-court-600">What you get back</p>
+            <h2 className="mt-2 text-3xl sm:text-4xl">
+              Not a score — a plan for your next match
+            </h2>
+            <p className="mt-3 text-slate-600">
+              Every review is personal analysis of your own footage. Here&rsquo;s
+              an example of exactly what lands in your inbox.
+            </p>
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="card overflow-hidden !p-0">
+              <div className="relative aspect-video bg-court-950">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/media/hero-poster.jpg"
+                  alt=""
+                  width={1280}
+                  height={720}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover opacity-70"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ball-500 text-court-950 shadow-lg">
+                    <svg viewBox="0 0 24 24" className="ml-0.5 h-6 w-6" fill="currentColor" aria-hidden>
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </span>
+                </div>
+                <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-court-800">
+                  Coach video reply · 4:12
+                </span>
+                <div className="absolute inset-x-4 bottom-4">
+                  <div className="h-1 rounded-full bg-white/30">
+                    <div className="h-full w-1/3 rounded-full bg-ball-500" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-5">
+                <p className="eyebrow text-court-600">Timestamped comments</p>
+                <ul className="mt-3 space-y-2.5 text-sm">
+                  {SAMPLE_COMMENTS.map((c) => (
+                    <li key={c.t} className="flex gap-3">
+                      <span className="stat shrink-0 font-semibold text-court-700">
+                        {c.t}
+                      </span>
+                      <span className="text-slate-600">{c.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="card">
+                <p className="eyebrow text-court-600">3 things to fix</p>
+                <ol className="mt-3 space-y-3">
+                  {SAMPLE_FIXES.map((f, i) => (
+                    <li key={i} className="flex gap-3 text-sm text-slate-700">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ball-500/20 text-xs font-bold text-ball-600">
+                        {i + 1}
+                      </span>
+                      {f}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="card">
+                  <p className="eyebrow text-court-600">Tactical note</p>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    You win more points when you slow the game down. Against
+                    attacking pairs, lob more to reset and take the net back on
+                    your terms.
+                  </p>
+                </div>
+                <div className="card">
+                  <p className="eyebrow text-court-600">Your drill plan</p>
+                  <ul className="mt-2 list-inside list-disc space-y-1.5 text-sm text-slate-600">
+                    {SAMPLE_DRILLS.map((d) => (
+                      <li key={d}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p className="mt-4 text-xs text-slate-500">
+            Illustrative example. Your feedback is written by the coach you
+            choose, based on your own footage.
+          </p>
+        </section>
+      </Reveal>
 
       {/* Brand statement + the roster (the reference's statement → grid) */}
       <Reveal>
@@ -183,6 +344,28 @@ export default async function HomePage() {
         </section>
       </Reveal>
 
+      {/* Who this is for — make it feel inclusive of every level */}
+      <Reveal>
+        <section>
+          <div className="mb-8 max-w-xl">
+            <p className="eyebrow text-court-600">Who it&rsquo;s for</p>
+            <h2 className="mt-2 text-3xl sm:text-4xl">
+              Built for every level of padel player
+            </h2>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-3">
+            {LEVELS.map((l) => (
+              <div key={l.title} className="card">
+                <h3 className="text-lg">{l.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                  {l.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </Reveal>
+
       {/* Scrolling ticker */}
       <Marquee />
 
@@ -268,6 +451,15 @@ export default async function HomePage() {
                 Create a free account
               </Link>
             </div>
+            <p className="mt-6 text-sm text-court-300">
+              Are you a coach?{" "}
+              <Link
+                href="/register?role=coach"
+                className="font-semibold text-ball-400 hover:underline"
+              >
+                Join the roster →
+              </Link>
+            </p>
           </div>
         </section>
       </Reveal>

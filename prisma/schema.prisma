@@ -37,6 +37,8 @@ model CoachProfile {
   userId            String   @unique
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   headline          String
+  // Short "best for …" tag surfaced on coach cards to aid the player's choice.
+  bestFor           String?
   bio               String
   location          String?
   experienceYears   Int      @default(0)

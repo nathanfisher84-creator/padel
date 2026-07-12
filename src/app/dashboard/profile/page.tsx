@@ -34,6 +34,7 @@ export default async function CoachProfilePage() {
       <CoachProfileForm
         initial={{
           headline: profile.headline,
+          bestFor: profile.bestFor ?? "",
           bio: profile.bio,
           location: profile.location ?? "",
           experienceYears: profile.experienceYears,
