@@ -114,6 +114,7 @@ model VideoSubmission {
 
   feedback Feedback?
   review   Review?
+  comments FeedbackComment[]
 }
 
 model Feedback {
@@ -123,6 +124,19 @@ model Feedback {
   content      String
   videoUrl     String?
   createdAt    DateTime        @default(now())
+}
+
+// A coach's note pinned to a specific moment in the player's uploaded video.
+// The player can click the timestamp to jump straight to that point.
+model FeedbackComment {
+  id           String          @id @default(cuid())
+  submissionId String
+  submission   VideoSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  timeSeconds  Float
+  body         String
+  createdAt    DateTime        @default(now())
+
+  @@index([submissionId])
 }
 
 // A player's rating of a delivered video review. One per submission,

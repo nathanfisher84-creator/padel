@@ -5,6 +5,7 @@ import { formatDate } from "@/lib/format";
 import { Role, SubmissionStatus } from "@/lib/constants";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { RatingForm } from "@/components/RatingForm";
+import { AnalysisPlayer } from "@/components/AnalysisPlayer";
 import { blobUploadsEnabled } from "@/lib/storage";
 import { FOCUS_SHOTS } from "@/lib/constants";
 
@@ -20,13 +21,25 @@ export default async function SubmissionPage({
 
   const submission = await db.videoSubmission.findUnique({
     where: { id: params.id },
-    include: { player: true, coach: true, feedback: true, review: true },
+    include: {
+      player: true,
+      coach: true,
+      feedback: true,
+      review: true,
+      comments: { orderBy: { timeSeconds: "asc" } },
+    },
   });
   if (!submission) notFound();
 
   const isPlayer = session.id === submission.playerId;
   const isCoach = session.id === submission.coachId;
   if (!isPlayer && !isCoach && session.role !== Role.ADMIN) notFound();
+
+  // The coach annotates while the review is open; once delivered the notes
+  // become part of the read-only feedback the player sees.
+  const canAnnotate = isCoach && !submission.feedback;
+  const showComments =
+    canAnnotate || Boolean(submission.feedback) || session.role === Role.ADMIN;
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -51,11 +64,11 @@ export default async function SubmissionPage({
         </p>
       </div>
 
-      <video
-        controls
-        preload="metadata"
-        className="aspect-video w-full rounded-xl border border-slate-200 bg-black"
+      <AnalysisPlayer
         src={`/api/videos/${submission.id}/stream`}
+        submissionId={submission.id}
+        editable={canAnnotate}
+        initialComments={showComments ? submission.comments : []}
       />
 
       {submission.focusShots && (
