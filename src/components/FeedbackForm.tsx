@@ -87,6 +87,10 @@ export function FeedbackForm({
         minLength={10}
         placeholder="What's working well, what to improve, and specific drills to practise…"
       />
+      <p className="-mt-2 text-xs text-slate-500">
+        To keep coaching on PadelPro, contact details (emails, phone numbers,
+        links) are automatically removed from feedback.
+      </p>
       <div>
         <span className="label">Video reply (optional)</span>
         <p className="mb-2 text-xs text-slate-500">

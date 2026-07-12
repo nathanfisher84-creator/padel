@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { createSession, hashPassword } from "@/lib/auth";
 import { Role } from "@/lib/constants";
+import { redactContact, redactMaybe } from "@/lib/redact";
 
 const bodySchema = z.object({
   name: z.string().trim().min(2).max(80),
@@ -58,9 +59,11 @@ export async function POST(req: Request) {
         ? {
             coachProfile: {
               create: {
-                headline: data.headline || `Padel coach ${data.name}`,
-                bio: data.bio || "",
-                location: data.location,
+                headline: redactContact(
+                  data.headline || `Padel coach ${data.name}`
+                ),
+                bio: redactContact(data.bio || ""),
+                location: redactMaybe(data.location),
                 experienceYears: data.experienceYears ?? 0,
                 oneOffPriceCents: Math.round(data.oneOffPrice! * 100),
                 monthlyPriceCents: Math.round(data.monthlyPrice! * 100),
@@ -70,9 +73,9 @@ export async function POST(req: Request) {
                 )
                   ? data.turnaroundHours
                   : 72,
-                languages: data.languages || null,
-                certifications: data.certifications || null,
-                careerHighlights: data.careerHighlights || null,
+                languages: redactMaybe(data.languages),
+                certifications: redactMaybe(data.certifications),
+                careerHighlights: redactMaybe(data.careerHighlights),
               },
             },
           }

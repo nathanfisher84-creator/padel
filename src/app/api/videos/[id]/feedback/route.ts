@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { Role, SubmissionStatus } from "@/lib/constants";
+import { redactContact } from "@/lib/redact";
 import {
   blobUploadsEnabled,
   isVercelBlobUrl,
@@ -114,7 +115,7 @@ export async function POST(
 
   await db.$transaction([
     db.feedback.create({
-      data: { submissionId: submission.id, content, videoUrl },
+      data: { submissionId: submission.id, content: redactContact(content), videoUrl },
     }),
     db.videoSubmission.update({
       where: { id: submission.id },

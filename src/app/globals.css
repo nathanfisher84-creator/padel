@@ -7,13 +7,17 @@ body {
 }
 
 @layer base {
-  /* Archivo variable width axis: expanded headings read athletic and
-     confident — the "championship poster" register, kept professional. */
+  /* Playfair Display: a high-contrast serif for headlines gives the
+     marketplace an editorial, premium register — the "considered" voice,
+     paired with Inter for everything else. */
   h1,
   h2,
-  h3 {
-    @apply font-bold tracking-tight;
-    font-stretch: 118%;
+  h3,
+  h4 {
+    @apply font-display font-semibold tracking-tight;
+  }
+  h1 {
+    @apply font-bold;
   }
 }
 
@@ -36,12 +40,14 @@ body {
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
   }
-  /* Match-sheet data labels: the site's signature device. Used for
-     eyebrows, stats, prices — anywhere the content is data, not prose. */
+  /* Section labels: wide-tracked uppercase Inter — a refined editorial
+     kicker above headings. Used for eyebrows across the site. */
   .eyebrow {
-    @apply font-mono text-xs font-medium uppercase tracking-[0.18em];
+    @apply text-xs font-semibold uppercase tracking-[0.2em];
   }
+  /* Numeric/data spans (prices, counts) — Inter with lining, tabular
+     figures so columns of numbers align cleanly. */
   .stat {
-    @apply font-mono tabular-nums;
+    @apply tabular-nums;
   }
 }
