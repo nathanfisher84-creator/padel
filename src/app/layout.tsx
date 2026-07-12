@@ -41,6 +41,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+        <div className="bg-court-950 text-white">
+          <p className="mx-auto max-w-6xl px-4 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-court-100">
+            Curated padel coaches · Feedback in days, not weeks · Now accepting
+            new players
+          </p>
+        </div>
         <NavBar />
         <main className="mx-auto min-h-[calc(100vh-8rem)] w-full max-w-6xl px-4 py-8">
           {children}
