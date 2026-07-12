@@ -7,6 +7,7 @@ import { redactContact, redactMaybe } from "@/lib/redact";
 
 const bodySchema = z.object({
   headline: z.string().trim().min(3).max(120),
+  bestFor: z.string().trim().max(80).optional(),
   bio: z.string().trim().max(2000),
   location: z.string().trim().max(80).optional(),
   experienceYears: z.coerce.number().int().min(0).max(60),
@@ -40,6 +41,7 @@ export async function PUT(req: Request) {
     where: { userId: session.id },
     data: {
       headline: redactContact(data.headline),
+      bestFor: redactMaybe(data.bestFor),
       bio: redactContact(data.bio),
       location: redactMaybe(data.location),
       experienceYears: data.experienceYears,

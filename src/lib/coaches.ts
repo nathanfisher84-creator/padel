@@ -13,6 +13,7 @@ export async function getPublicCoaches(take?: number): Promise<PublicCoach[]> {
         id: true,
         userId: true,
         headline: true,
+        bestFor: true,
         bio: true,
         location: true,
         experienceYears: true,

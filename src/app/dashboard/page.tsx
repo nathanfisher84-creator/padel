@@ -315,11 +315,22 @@ async function CoachDashboard({ userId }: { userId: string }) {
 }
 
 async function AdminDashboard() {
-  const totals = await db.payment.aggregate({
+  // Group revenue by currency — never sum different currencies into one total.
+  const byCurrency = await db.payment.groupBy({
+    by: ["currency"],
     where: { status: PaymentStatus.PAID },
     _sum: { amountCents: true, platformFeeCents: true, coachCents: true },
     _count: true,
   });
+  const revenueRows = byCurrency.length
+    ? byCurrency
+    : [
+        {
+          currency: "EUR",
+          _sum: { amountCents: 0, platformFeeCents: 0, coachCents: 0 },
+          _count: 0,
+        },
+      ];
   const [coachCount, playerCount, submissionCount] = await Promise.all([
     db.coachProfile.count(),
     db.user.count({ where: { role: Role.PLAYER } }),
@@ -431,19 +442,24 @@ async function AdminDashboard() {
         </section>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          ["Gross revenue", formatMoney(totals._sum.amountCents ?? 0, "EUR")],
-          ["Platform earnings", formatMoney(totals._sum.platformFeeCents ?? 0, "EUR")],
-          ["Paid to coaches", formatMoney(totals._sum.coachCents ?? 0, "EUR")],
-          ["Payments", String(totals._count)],
-        ].map(([label, value]) => (
-          <div key={label} className="card">
-            <p className="text-sm text-slate-600">{label}</p>
-            <p className="mt-1 text-2xl font-extrabold text-court-700">{value}</p>
-          </div>
-        ))}
-      </section>
+      {revenueRows.map((g) => (
+        <section key={g.currency} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            [
+              `Gross revenue${revenueRows.length > 1 ? ` (${g.currency})` : ""}`,
+              formatMoney(g._sum.amountCents ?? 0, g.currency),
+            ],
+            ["Platform earnings", formatMoney(g._sum.platformFeeCents ?? 0, g.currency)],
+            ["Paid to coaches", formatMoney(g._sum.coachCents ?? 0, g.currency)],
+            ["Payments", String(g._count)],
+          ].map(([label, value]) => (
+            <div key={label} className="card">
+              <p className="text-sm text-slate-600">{label}</p>
+              <p className="mt-1 text-2xl font-extrabold text-court-700">{value}</p>
+            </div>
+          ))}
+        </section>
+      ))}
       <section className="grid gap-4 sm:grid-cols-3">
         {[
           ["Coaches", coachCount],

@@ -13,12 +13,12 @@ const db = new PrismaClient();
 const isProd = process.env.NODE_ENV === "production";
 const seedDemo = process.env.SEED_DEMO === "true" || !isProd;
 
-// ⚠️ PREVIEW ONLY: keep a demo admin (admin@padelpro.local / password123) alive
-// in production so the owner can log in and explore — including the admin
-// "view as" tool. A public-password admin must NOT exist on a real launch:
-// set this to false (or delete this block) before going live. Ignored if a
-// real admin is configured via ADMIN_EMAIL / ADMIN_PASSWORD.
-const PREVIEW_DEMO_ADMIN = true;
+// ⚠️ PREVIEW ONLY: keep the full demo data (admin + 3 coaches + player, all
+// with password "password123") alive and up to date in production so the owner
+// can log in and explore — including the admin "view as" tool. Public-password
+// accounts must NOT exist on a real launch: set this to false (or delete it)
+// before going live.
+const PREVIEW_DEMO = true;
 
 async function main() {
   // Bootstrap a real admin from environment variables when provided (works in
@@ -39,26 +39,11 @@ async function main() {
     console.log(`Ensured admin account for ${adminEmail}.`);
   }
 
-  if (!seedDemo) {
-    if (PREVIEW_DEMO_ADMIN && !adminEmail) {
-      // Preview convenience: ensure a demo admin exists with the documented
-      // password so the owner can log in (recreated if it was removed).
-      const hash = await bcrypt.hash("password123", 10);
-      await db.user.upsert({
-        where: { email: "admin@padelpro.local" },
-        update: { passwordHash: hash, role: "ADMIN" },
-        create: {
-          email: "admin@padelpro.local",
-          name: "Site Owner",
-          passwordHash: hash,
-          role: "ADMIN",
-        },
-      });
-      console.log(
-        "Preview demo admin ensured (admin@padelpro.local / password123) — remove before launch."
-      );
-    } else if (adminEmail !== "admin@padelpro.local") {
-      // No preview admin wanted: remove any legacy public-password admin.
+  const runDemo = seedDemo || PREVIEW_DEMO;
+  if (!runDemo) {
+    // Launch posture: remove any legacy public-password admin (unless it is
+    // the env-configured admin) and create no demo accounts.
+    if (adminEmail !== "admin@padelpro.local") {
       const removed = await db.user.deleteMany({
         where: { email: "admin@padelpro.local" },
       });
@@ -67,7 +52,7 @@ async function main() {
       }
     }
     console.log(
-      "Production seed: skipping demo coaches/player (set SEED_DEMO=true to include them)."
+      "Production seed: skipping demo accounts (set SEED_DEMO=true or PREVIEW_DEMO to include them)."
     );
     return;
   }
@@ -96,6 +81,7 @@ async function main() {
       certifications: "RFEP National Coach Level II\nWorld Padel Tour player 2012-2020",
       careerHighlights: "8 seasons on the World Padel Tour\nReached world top-40 ranking\nFull-time coach in Madrid since 2021",
       headline: "Ex-World Padel Tour player specialising in attacking net play",
+      bestFor: "attacking net play & competitive players",
       bio: "I spent 8 seasons on the World Padel Tour and now coach full time in Madrid. My video reviews focus on your smash selection (bandeja vs víbora), net positioning and transition play. Expect honest, actionable feedback with drills you can take straight to your next session.",
       location: "Madrid, Spain",
       experienceYears: 12,
@@ -114,6 +100,7 @@ async function main() {
       certifications: "Swedish Padel Federation Instructor\nPTR Padel Professional",
       careerHighlights: "Head coach at Stockholm Padel Center\nCoached 3 national junior champions",
       headline: "Technique-first coaching for beginners and intermediates",
+      bestFor: "beginners & improvers fixing the fundamentals",
       bio: "Head coach at Stockholm Padel Center. I love helping club players break through plateaus — most of my players see the biggest gains from fixing grip, preparation and footwork basics. My feedback always includes slow-motion timestamps and 2-3 practice drills.",
       location: "Stockholm, Sweden",
       experienceYears: 7,
@@ -132,13 +119,14 @@ async function main() {
       certifications: "APA Certified Coach (Argentina)\nFIP Coaching Course Level 2",
       careerHighlights: "Former Argentine national circuit player\n15 years coaching competitive players\nCoached 2 national-level doubles pairs",
       headline: "Match tactics & doubles strategy for competitive players",
+      bestFor: "doubles tactics & match strategy",
       bio: "Former Argentine national circuit player. I review full matches and break down your shot selection, court coverage with your partner, and how to win more points playing the percentages. Best suited to tournament players who already have solid fundamentals.",
       location: "Buenos Aires, Argentina",
       experienceYears: 15,
       oneOffPriceCents: 4500,
       monthlyPriceCents: 14900,
       monthlyVideoLimit: 4,
-      currency: "USD",
+      currency: "EUR",
     },
   ];
 
@@ -146,18 +134,13 @@ async function main() {
     const { email, name, ...profile } = coach;
     await db.user.upsert({
       where: { email },
-      // Existing demo coaches get their placeholder photo on re-seed.
+      // Keep the demo coaches in sync with the canonical demo data on re-seed
+      // (photos, best-for, pricing, etc.). These are demo accounts, so it's
+      // fine to overwrite them each deploy.
       update: {
         coachProfile: {
           upsert: {
-            update: {
-              photoUrl: profile.photoUrl,
-              isPublished: true,
-              turnaroundHours: profile.turnaroundHours,
-              languages: profile.languages,
-              certifications: profile.certifications,
-              careerHighlights: profile.careerHighlights,
-            },
+            update: { ...profile, isPublished: true },
             create: profile,
           },
         },

@@ -41,6 +41,11 @@ export function CoachTile({ profile }: { profile: PublicCoach }) {
         {profile.location || "Online coaching"}
         {profile.experienceYears > 0 && ` · ${profile.experienceYears} yrs`}
       </p>
+      {profile.bestFor && (
+        <p className="mt-1 line-clamp-1 text-xs text-court-700">
+          <span className="font-semibold">Best for</span> {profile.bestFor}
+        </p>
+      )}
       <p className="stat mt-1 text-sm font-semibold text-court-800">
         Video review from{" "}
         {formatMoney(profile.oneOffPriceCents, profile.currency)}

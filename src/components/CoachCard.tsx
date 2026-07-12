@@ -11,6 +11,7 @@ export type PublicCoach = {
   id: string;
   userId: string;
   headline: string;
+  bestFor: string | null;
   bio: string;
   location: string | null;
   experienceYears: number;
@@ -62,6 +63,11 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
         <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-slate-600">
           {profile.headline}
         </p>
+        {profile.bestFor && (
+          <p className="mt-2 line-clamp-1 text-xs text-court-700">
+            <span className="font-semibold">Best for</span> {profile.bestFor}
+          </p>
+        )}
         <div className="stat mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="font-semibold text-court-800">
             Replies in {turnaroundLabel(profile.turnaroundHours)}
