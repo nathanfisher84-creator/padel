@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { Role } from "@/lib/constants";
+import { redactContact, redactMaybe } from "@/lib/redact";
 
 const bodySchema = z.object({
   headline: z.string().trim().min(3).max(120),
@@ -38,18 +39,18 @@ export async function PUT(req: Request) {
   await db.coachProfile.update({
     where: { userId: session.id },
     data: {
-      headline: data.headline,
-      bio: data.bio,
-      location: data.location,
+      headline: redactContact(data.headline),
+      bio: redactContact(data.bio),
+      location: redactMaybe(data.location),
       experienceYears: data.experienceYears,
       oneOffPriceCents: Math.round(data.oneOffPrice * 100),
       monthlyPriceCents: Math.round(data.monthlyPrice * 100),
       monthlyVideoLimit: data.monthlyVideoLimit,
       currency: data.currency,
       turnaroundHours: data.turnaroundHours,
-      languages: data.languages || null,
-      certifications: data.certifications || null,
-      careerHighlights: data.careerHighlights || null,
+      languages: redactMaybe(data.languages),
+      certifications: redactMaybe(data.certifications),
+      careerHighlights: redactMaybe(data.careerHighlights),
     },
   });
 

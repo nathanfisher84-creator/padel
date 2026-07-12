@@ -68,6 +68,10 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
       <div>
         <label className="label" htmlFor="bio">About you</label>
         <textarea className="input" id="bio" name="bio" rows={5} defaultValue={initial.bio} />
+        <p className="mt-1 text-xs text-slate-500">
+          Emails, phone numbers and links are automatically removed from your
+          public profile — players contact you by booking a review.
+        </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>

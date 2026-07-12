@@ -42,20 +42,27 @@ const SECTIONS: { title: string; body: string[] }[] = [
     ],
   },
   {
-    title: "6. Acceptable use",
+    title: "6. Keeping coaching on PadelPro",
     body: [
-      "Don't upload unlawful, abusive or infringing content; don't attempt to bypass the platform to avoid fees; don't misuse reviews or ratings; don't attempt to access other users' data.",
+      "All coaching, communication and payment must take place through PadelPro. Coaches and players may not share or request personal contact details (such as email addresses, phone numbers, social handles or external links) in profiles, feedback, reviews or anywhere else on the platform in order to arrange or continue coaching off-platform.",
+      "To support this, contact details entered into free-text fields are automatically removed. Attempting to circumvent the platform — to avoid fees or move a coaching relationship elsewhere — may lead to a profile being unpublished or an account being closed.",
     ],
   },
   {
-    title: "7. Disclaimers",
+    title: "7. Acceptable use",
+    body: [
+      "Don't upload unlawful, abusive or infringing content; don't misuse reviews or ratings; don't attempt to access other users' data or disrupt the service.",
+    ],
+  },
+  {
+    title: "8. Disclaimers",
     body: [
       "Coaching advice is provided by independent coaches based on the footage you supply. Physical training carries inherent risk — you are responsible for your own health and for exercising within your limits.",
       "The service is provided \"as is\". To the maximum extent permitted by law, PadelPro's liability for any claim is limited to the amount you paid in the twelve months before the claim arose.",
     ],
   },
   {
-    title: "8. Changes and contact",
+    title: "9. Changes and contact",
     body: [
       "We may update these terms as the service evolves; material changes will be announced on the site. Continued use after a change means you accept the updated terms.",
       "Questions? Contact us via the email address in the site footer.",

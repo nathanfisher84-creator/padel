@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { Role, SubmissionStatus } from "@/lib/constants";
+import { redactMaybe } from "@/lib/redact";
 
 const bodySchema = z.object({
   rating: z.coerce.number().int().min(1).max(5),
@@ -50,7 +51,7 @@ export async function POST(
       playerId: session.id,
       coachId: submission.coachId,
       rating: parsed.data.rating,
-      comment: parsed.data.comment || null,
+      comment: redactMaybe(parsed.data.comment),
     },
   });
   return NextResponse.json({ ok: true });
