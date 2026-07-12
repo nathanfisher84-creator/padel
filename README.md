@@ -79,6 +79,7 @@ See [`.env.example`](.env.example) for the full list:
 | `STRIPE_SECRET_KEY` | Enables real Stripe Checkout (optional) |
 | `STRIPE_WEBHOOK_SECRET` | Signing secret for `/api/stripe/webhook` |
 | `UPLOAD_DIR` | Where uploaded videos are stored (default `./uploads`) |
+| `GEMINI_API_KEY` | Enables AI-standardized coach profile photos (optional) |
 
 ## Deploying to Vercel
 
@@ -147,6 +148,24 @@ actions for the owner:
 > connected account and pay their share out on a schedule. Until then, coach
 > balances are visible in the coach dashboard and admin ledger for manual
 > payouts.
+
+## Standardized coach photos (AI)
+
+Coaches take a selfie or upload a photo when setting up their profile. If
+`GEMINI_API_KEY` is set, the app offers an **AI-standardized studio version**
+of that photo — the coach's real face on a consistent court-green studio
+backdrop, square-cropped — so every coach picture on the marketplace shares one
+polished format. The coach sees a before/after and can accept the studio
+version or keep their original; if the key isn't set (or generation fails),
+their original photo is simply used, so the flow never blocks.
+
+- Get a key at [Google AI Studio](https://aistudio.google.com/apikey) and add
+  `GEMINI_API_KEY` in Vercel → Settings → Environment Variables.
+- The image model is `gemini-2.5-flash-image` ("Nano Banana"); override with
+  `GEMINI_IMAGE_MODEL` if it is renamed.
+- `GET /api/health` reports `photoStandardization` (`gemini` or `off`).
+- Each generation is a single image-model call (a few cents); photos are
+  downscaled to 800px in the browser before they are sent.
 
 ## Project structure
 

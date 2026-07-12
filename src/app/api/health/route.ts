@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripeEnabled, platformFeePercent } from "@/lib/config";
+import { photoStandardizationEnabled } from "@/lib/imageStandardize";
 import {
   blobUploadsEnabled,
   blobAuthMode,
@@ -51,6 +52,7 @@ export async function GET(req: Request) {
       ...(blobWrite !== undefined ? { blobWrite } : {}),
       authSecretSet: Boolean(process.env.AUTH_SECRET),
       payments: stripeEnabled() ? "stripe" : "demo",
+      photoStandardization: photoStandardizationEnabled() ? "gemini" : "off",
       platformFeePercent: platformFeePercent(),
       counts: { users, coaches, payments },
     });
