@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
+import { getSession } from "@/lib/auth";
+import { StopImpersonatingButton } from "@/components/StopImpersonatingButton";
 
 // Inter carries every word of UI and body copy — highly legible, neutral,
 // modern. Playfair Display is the editorial voice: high-contrast serif
@@ -45,9 +47,11 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await getSession();
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable} font-sans`}>
@@ -57,6 +61,17 @@ export default function RootLayout({
             __html: JSON.stringify(orgJsonLd).replace(/</g, "\\u003c"),
           }}
         />
+        {session?.impersonatorId && (
+          <div className="bg-amber-400 text-amber-950">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2 text-sm">
+              <span>
+                Admin preview — you&rsquo;re viewing the site as{" "}
+                <strong>{session.name}</strong> ({session.role.toLowerCase()}).
+              </span>
+              <StopImpersonatingButton />
+            </div>
+          </div>
+        )}
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-court-950 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"

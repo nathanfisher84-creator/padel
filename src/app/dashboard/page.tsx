@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { ApproveCoachButton } from "@/components/ApproveCoachButton";
+import { ViewAsButton } from "@/components/ViewAsButton";
 import { getSession } from "@/lib/auth";
 import { getEntitlements } from "@/lib/entitlements";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -335,10 +336,71 @@ async function AdminDashboard() {
     include: { user: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: "asc" },
   });
+  const [coachUsers, playerUsers] = await Promise.all([
+    db.user.findMany({
+      where: { role: Role.COACH },
+      select: {
+        id: true,
+        name: true,
+        coachProfile: { select: { isPublished: true } },
+      },
+      orderBy: { createdAt: "asc" },
+      take: 12,
+    }),
+    db.user.findMany({
+      where: { role: Role.PLAYER },
+      select: { id: true, name: true },
+      orderBy: { createdAt: "asc" },
+      take: 12,
+    }),
+  ]);
 
   return (
     <div className="space-y-10">
       <h1 className="text-3xl font-bold">Platform overview</h1>
+
+      <section className="card">
+        <h2 className="text-xl font-semibold">See the site as a coach or player</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Open any account to experience their dashboard and flows exactly as
+          they see them. A banner lets you return to admin at any time.
+        </p>
+        <div className="mt-4 grid gap-6 sm:grid-cols-2">
+          <div>
+            <p className="eyebrow text-court-600">Coaches</p>
+            <ul className="mt-2 divide-y divide-slate-100">
+              {coachUsers.length === 0 && (
+                <li className="py-2 text-sm text-slate-500">No coaches yet.</li>
+              )}
+              {coachUsers.map((u) => (
+                <li key={u.id} className="flex items-center justify-between gap-3 py-2">
+                  <span className="text-sm">
+                    {u.name}
+                    {u.coachProfile && !u.coachProfile.isPublished && (
+                      <span className="ml-1 text-xs text-amber-700">· pending</span>
+                    )}
+                  </span>
+                  <ViewAsButton userId={u.id} />
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="eyebrow text-court-600">Players</p>
+            <ul className="mt-2 divide-y divide-slate-100">
+              {playerUsers.length === 0 && (
+                <li className="py-2 text-sm text-slate-500">No players yet.</li>
+              )}
+              {playerUsers.map((u) => (
+                <li key={u.id} className="flex items-center justify-between gap-3 py-2">
+                  <span className="text-sm">{u.name}</span>
+                  <ViewAsButton userId={u.id} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
 
       {pendingCoaches.length > 0 && (
         <section>
