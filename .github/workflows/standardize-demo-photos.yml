@@ -1,0 +1,36 @@
+name: Standardize demo coach photos
+
+# One-shot helper: runs the demo coach avatars through the Gemini image model
+# (the same engine as the live coach-photo feature) so they share one studio
+# format, then commits the results. Needs a GEMINI_API_KEY repository secret.
+on: workflow_dispatch
+
+permissions:
+  contents: write
+
+jobs:
+  standardize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/padel-coaching-marketplace-gnl8q1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pillow
+
+      - name: Standardize avatars
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/standardize_avatars.py
+
+      - name: Commit standardized avatars
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/avatars/carlos.jpg public/avatars/sofia.jpg public/avatars/diego.jpg
+          git commit -m "Standardize demo coach photos (Gemini studio look)" || echo "no changes"
+          git push
