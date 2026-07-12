@@ -86,7 +86,11 @@ export function CoachMediaForm({
       <p className="text-sm font-semibold text-slate-700">Profile media</p>
       <div>
         <span className="label">Profile photo</span>
-        <PhotoCapture onChange={setPhoto} initialUrl={photoUrl} />
+        <PhotoCapture onChange={setPhoto} initialUrl={photoUrl} standardize />
+        <p className="mt-2 text-xs text-slate-600">
+          We&rsquo;ll offer an AI-standardized studio version so every coach
+          photo shares the same look — you can always keep your original.
+        </p>
       </div>
       <div>
         <span className="label">Intro video</span>
