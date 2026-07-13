@@ -92,7 +92,7 @@ export default async function HomePage() {
   );
   const fromPrice = cheapest
     ? formatMoney(cheapest.oneOffPriceCents, cheapest.currency)
-    : "€25";
+    : "AED 99";
   const TRUST = [
     "Vetted coaches",
     `From ${fromPrice}`,

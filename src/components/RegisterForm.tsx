@@ -218,7 +218,8 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
                 </div>
                 <div>
                   <label className="label" htmlFor="currency">Currency</label>
-                  <select className="input" id="currency" name="currency" defaultValue="EUR">
+                  <select className="input" id="currency" name="currency" defaultValue="AED">
+                    <option value="AED">AED د.إ</option>
                     <option value="EUR">EUR €</option>
                     <option value="USD">USD $</option>
                     <option value="GBP">GBP £</option>

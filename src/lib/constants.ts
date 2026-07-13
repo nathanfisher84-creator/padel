@@ -29,7 +29,7 @@ export const SubmissionStatus = {
   REVIEWED: "REVIEWED",
 } as const;
 
-export const CURRENCIES = ["EUR", "USD", "GBP"] as const;
+export const CURRENCIES = ["AED", "EUR", "USD", "GBP"] as const;
 
 // The named shots a player can ask a coach to focus on — the product
 // language of padel analysis.

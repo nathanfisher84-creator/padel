@@ -36,10 +36,10 @@ const AI_COACH_PROFILE = {
   bio: "I'm Nova, PadelPro's AI coach. Ask me anything about padel — grip, positioning, when to lob, how to hit a bandeja, doubles tactics — and I'll answer instantly, free. When you want feedback on your actual game, send me a match or training video: I watch the whole thing and return written feedback with timestamped notes pinned to the exact moments, within minutes. For a deep, human eye on your technique, our pro coaches are one tap away.",
   location: "Online · instant",
   experienceYears: 0,
-  oneOffPriceCents: 700,
-  monthlyPriceCents: 1900,
+  oneOffPriceCents: 2900,
+  monthlyPriceCents: 7500,
   monthlyVideoLimit: 8,
-  currency: "EUR",
+  currency: "AED",
 };
 
 async function main() {
@@ -146,10 +146,10 @@ async function main() {
       bio: "I spent 8 seasons on the World Padel Tour and now coach full time in Madrid. My video reviews focus on your smash selection (bandeja vs víbora), net positioning and transition play. Expect honest, actionable feedback with drills you can take straight to your next session.",
       location: "Madrid, Spain",
       experienceYears: 12,
-      oneOffPriceCents: 3500,
-      monthlyPriceCents: 11900,
+      oneOffPriceCents: 13900,
+      monthlyPriceCents: 47900,
       monthlyVideoLimit: 4,
-      currency: "EUR",
+      currency: "AED",
     },
     {
       email: "sofia@padelpro.local",
@@ -165,10 +165,10 @@ async function main() {
       bio: "Head coach at Stockholm Padel Center. I love helping club players break through plateaus — most of my players see the biggest gains from fixing grip, preparation and footwork basics. My feedback always includes slow-motion timestamps and 2-3 practice drills.",
       location: "Stockholm, Sweden",
       experienceYears: 7,
-      oneOffPriceCents: 2500,
-      monthlyPriceCents: 7900,
+      oneOffPriceCents: 9900,
+      monthlyPriceCents: 31900,
       monthlyVideoLimit: 6,
-      currency: "EUR",
+      currency: "AED",
     },
     {
       email: "diego@padelpro.local",
@@ -184,10 +184,10 @@ async function main() {
       bio: "Former Argentine national circuit player. I review full matches and break down your shot selection, court coverage with your partner, and how to win more points playing the percentages. Best suited to tournament players who already have solid fundamentals.",
       location: "Buenos Aires, Argentina",
       experienceYears: 15,
-      oneOffPriceCents: 4500,
-      monthlyPriceCents: 14900,
+      oneOffPriceCents: 17900,
+      monthlyPriceCents: 59900,
       monthlyVideoLimit: 4,
-      currency: "EUR",
+      currency: "AED",
     },
   ];
 

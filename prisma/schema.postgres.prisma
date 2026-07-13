@@ -52,7 +52,7 @@ model CoachProfile {
   oneOffPriceCents  Int
   monthlyPriceCents Int
   monthlyVideoLimit Int      @default(4)
-  currency          String   @default("EUR")
+  currency          String   @default("AED")
   isPublished       Boolean  @default(false)
   // True for the built-in AI coach (Nova): free chat, paid instant reviews
   // generated automatically; the platform keeps 100% of its payments.

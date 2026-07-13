@@ -205,7 +205,7 @@ async function CoachDashboard({ userId }: { userId: string }) {
   ]);
 
   const profile = await db.coachProfile.findUnique({ where: { userId } });
-  const currency = profile?.currency ?? "EUR";
+  const currency = profile?.currency ?? "AED";
 
   return (
     <div className="space-y-10">
@@ -326,7 +326,7 @@ async function AdminDashboard() {
     ? byCurrency
     : [
         {
-          currency: "EUR",
+          currency: "AED",
           _sum: { amountCents: 0, platformFeeCents: 0, coachCents: 0 },
           _count: 0,
         },

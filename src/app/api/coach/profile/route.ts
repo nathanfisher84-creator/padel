@@ -14,7 +14,7 @@ const bodySchema = z.object({
   oneOffPrice: z.coerce.number().min(1).max(10000),
   monthlyPrice: z.coerce.number().min(1).max(10000),
   monthlyVideoLimit: z.coerce.number().int().min(1).max(30),
-  currency: z.enum(["EUR", "USD", "GBP"]),
+  currency: z.enum(["AED", "EUR", "USD", "GBP"]),
   isPublished: z.boolean().optional(), // ignored: publishing is admin-controlled
   turnaroundHours: z.coerce.number().int().refine((h) => [24, 48, 72, 168].includes(h)),
   languages: z.string().trim().max(120).optional(),

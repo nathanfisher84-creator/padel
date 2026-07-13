@@ -17,7 +17,7 @@ const bodySchema = z.object({
   experienceYears: z.coerce.number().int().min(0).max(60).optional(),
   oneOffPrice: z.coerce.number().min(1).max(10000).optional(),
   monthlyPrice: z.coerce.number().min(1).max(10000).optional(),
-  currency: z.enum(["EUR", "USD", "GBP"]).optional(),
+  currency: z.enum(["AED", "EUR", "USD", "GBP"]).optional(),
   turnaroundHours: z.coerce.number().int().optional(),
   languages: z.string().trim().max(120).optional(),
   certifications: z.string().trim().max(1000).optional(),
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
                 experienceYears: data.experienceYears ?? 0,
                 oneOffPriceCents: Math.round(data.oneOffPrice! * 100),
                 monthlyPriceCents: Math.round(data.monthlyPrice! * 100),
-                currency: data.currency ?? "EUR",
+                currency: data.currency ?? "AED",
                 turnaroundHours: [24, 48, 72, 168].includes(
                   data.turnaroundHours ?? 0
                 )
