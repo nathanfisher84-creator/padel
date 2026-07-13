@@ -87,6 +87,19 @@ async function main() {
   });
   console.log("Ensured AI coach (Nova).");
 
+  // Exactly one AI coach must ever exist. Earlier iterations of this feature
+  // seeded AI coach accounts under other emails (e.g. "PadelPro AI Coach");
+  // remove any that linger so the roster never shows duplicates.
+  const legacyAi = await db.user.deleteMany({
+    where: {
+      coachProfile: { is: { isAi: true } },
+      NOT: { email: "nova@padelpro.ai" },
+    },
+  });
+  if (legacyAi.count) {
+    console.log(`Removed ${legacyAi.count} legacy AI coach account(s).`);
+  }
+
   const runDemo = seedDemo || PREVIEW_DEMO;
   if (!runDemo) {
     // Launch posture: remove any legacy public-password admin (unless it is
