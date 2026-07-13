@@ -194,6 +194,19 @@ export function AnalysisPlayer({
     return () => v.removeEventListener("play", onPlay);
   }, []);
 
+  // Companion panels (e.g. the coach's AI pre-scan) seek the player by
+  // dispatching a window event with the target time in seconds.
+  useEffect(() => {
+    const onSeek = (e: Event) => {
+      const t = (e as CustomEvent<number>).detail;
+      if (!Number.isFinite(t)) return;
+      seek(t);
+      videoRef.current?.pause();
+    };
+    window.addEventListener("analysis:seek", onSeek);
+    return () => window.removeEventListener("analysis:seek", onSeek);
+  }, [seek]);
+
   function canvasPoint(e: React.PointerEvent): [number, number] {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();

@@ -127,6 +127,9 @@ model VideoSubmission {
   // Reminder ladder for the coach's committed turnaround: 0 = none sent,
   // 1 = approaching-deadline nudge sent, 2 = overdue notice sent.
   reminderStage Int @default(0)
+  // AI pre-scan for the human coach's workspace (JSON: inventory, level,
+  // suggested timestamped notes). Private prep material — never player-facing.
+  aiPrescan  String?
   // Set when the submission consumed a one-off review credit.
   paymentId String?  @unique
   payment   Payment? @relation(fields: [paymentId], references: [id])

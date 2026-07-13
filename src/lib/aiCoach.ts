@@ -765,6 +765,177 @@ export async function generateAiReview(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Coach co-pilot: AI pre-scan of a submission in a HUMAN coach's queue
+// ---------------------------------------------------------------------------
+
+export type AiPrescan = {
+  /** Factual inventory of the footage, written to the coach. */
+  inventory: string;
+  /** One-word level estimate (beginner/improver/intermediate/advanced). */
+  level: string;
+  /** Draft timestamped notes the coach can accept, edit or dismiss. */
+  suggestions: { id: string; timeSeconds: number; note: string }[];
+};
+
+const PRESCAN_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    inventory: { type: "STRING" },
+    level: { type: "STRING" },
+    suggestions: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          timeSeconds: { type: "NUMBER" },
+          note: { type: "STRING" },
+        },
+        required: ["timeSeconds", "note"],
+      },
+    },
+  },
+  propertyOrdering: ["inventory", "level", "suggestions"],
+  required: ["inventory", "level", "suggestions"],
+} as const;
+
+function buildPrescanPrompt(input: AiReviewInput): string {
+  const lines = [
+    PADEL_KNOWLEDGE,
+    "",
+    "TASK: You are the AI assistant of a PROFESSIONAL HUMAN padel coach on a",
+    "coaching marketplace. The coach will review this player's video and write",
+    "their own feedback; your job is PRIVATE prep material that saves the",
+    "coach time. You are not the reviewer — the coach is. Never invent",
+    "observations; only report what is clearly visible.",
+    "",
+    `The player titled the video: "${input.title}".`,
+  ];
+  if (input.playerOutfit) {
+    const where = input.playerSide
+      ? ` They start the video positioned: ${input.playerSide}.`
+      : "";
+    lines.push(
+      "",
+      "WHO TO ANALYSE — this is critical. There may be up to four players on",
+      `court. The paying player is wearing: ${input.playerOutfit}.${where}`,
+      "Track ONLY this player; mention others only as context. If you cannot",
+      "confidently identify them, say so in the inventory and only include",
+      "suggestions for moments where you are certain.",
+      ""
+    );
+  }
+  if (input.notes) {
+    lines.push(`The player's notes to the coach: "${input.notes}".`);
+  }
+  if (input.focusShots.length) {
+    lines.push(
+      `The player asked for focus on: ${input.focusShots.join(", ")} — make`,
+      "sure your suggestions cover every moment relevant to these."
+    );
+  }
+  lines.push(
+    "",
+    "Watch the ENTIRE video, then return JSON with:",
+    "- inventory: 3-6 sentences to the coach: roughly how many rallies/points,",
+    "  which shots THIS player hit and how each category tended to end, and",
+    "  where they spent their time on court. Factual, no advice.",
+    "- level: one word — beginner, improver, intermediate or advanced.",
+    "- suggestions: 6-12 draft timestamped notes, spread across the video,",
+    "  each pinned to the exact moment (timeSeconds MUST be within the video's",
+    "  duration). Write each note in the coach's voice addressed to the player",
+    "  (\"Your bandeja contact is behind your head here — set the racquet",
+    "  earlier\"), 1-2 sentences, specific to what is visible at that moment.",
+    "  Include at least one genuinely positive moment. The coach will accept,",
+    "  edit or discard each one.",
+    "",
+    "Never include contact details, links or social handles."
+  );
+  return lines.join("\n");
+}
+
+/** Deterministic pre-scan for dev/preview environments without an AI key. */
+export function demoAiPrescan(): AiPrescan {
+  return {
+    inventory:
+      "⚠ Demo mode (no AI key configured): this is a sample pre-scan — the video was not analysed. I'd normally summarise the rallies, the player's shot mix and outcomes, and where they spent their time on court.",
+    level: "improver",
+    suggestions: [
+      { id: "s1", timeSeconds: 5, note: "Sample suggestion: your ready position drops between shots here — keep the racquet up at chest height." },
+      { id: "s2", timeSeconds: 15, note: "Sample suggestion: lovely deep lob — this is exactly the moment to advance to the net with your partner." },
+    ],
+  };
+}
+
+/**
+ * Watch the video and produce the coach's private pre-scan. Returns null when
+ * no AI key is configured (callers may fall back to the demo pre-scan).
+ */
+export async function generateAiPrescan(
+  input: AiReviewInput
+): Promise<AiPrescan | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  const { bytes, mimeType } = await loadVideo(input.video);
+  const file = await uploadVideoToGemini(apiKey, bytes, mimeType);
+
+  const res = await fetch(
+    `${GEMINI_BASE}/v1beta/models/${VIDEO_MODEL()}:generateContent`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
+              { text: buildPrescanPrompt(input) },
+            ],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: PRESCAN_SCHEMA,
+          temperature: 0.4,
+        },
+      }),
+    }
+  );
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Gemini video API ${res.status}: ${detail.slice(0, 300)}`);
+  }
+
+  const json = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const text = json.candidates?.[0]?.content?.parts
+    ?.map((p) => p.text ?? "")
+    .join("");
+  if (!text) throw new Error("The model returned no pre-scan.");
+
+  let raw: { inventory: string; level: string; suggestions: { timeSeconds: number; note: string }[] };
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    throw new Error("The model returned malformed pre-scan JSON.");
+  }
+  return {
+    inventory: raw.inventory?.trim() || "No inventory produced.",
+    level: raw.level?.trim().toLowerCase() || "unknown",
+    suggestions: (raw.suggestions ?? [])
+      .filter((s) => Number.isFinite(s.timeSeconds) && s.timeSeconds >= 0 && s.note?.trim())
+      .sort((a, b) => a.timeSeconds - b.timeSeconds)
+      .slice(0, 15)
+      .map((s, i) => ({
+        id: `s${i + 1}`,
+        timeSeconds: Math.round(s.timeSeconds * 10) / 10,
+        note: s.note.trim().slice(0, 1000),
+      })),
+  };
+}
+
 /**
  * Stand-in review for environments without a GEMINI_API_KEY (local dev and
  * demo previews), so the whole purchase → upload → instant-feedback loop can
