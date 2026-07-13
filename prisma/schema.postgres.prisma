@@ -61,6 +61,10 @@ model CoachProfile {
   // proof of acceptance. Null = not yet accepted (prompted on the dashboard).
   agreementAcceptedAt DateTime?
   agreementVersion    String?
+  // Founding-coach programme: public badge + promotional platform fee that
+  // overrides PLATFORM_FEE_PERCENT while set (null = standard rate).
+  isFounding         Boolean @default(false)
+  feePercentOverride Int?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

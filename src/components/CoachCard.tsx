@@ -21,6 +21,7 @@ export type PublicCoach = {
   currency: string;
   turnaroundHours: number;
   isAi: boolean;
+  isFounding: boolean;
   user: { name: string };
   avgRating: number | null;
   reviewCount: number;
@@ -66,6 +67,11 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
               {profile.isAi && (
                 <span className="badge shrink-0 bg-ball-500/20 text-ball-600">
                   AI
+                </span>
+              )}
+              {profile.isFounding && !profile.isAi && (
+                <span className="badge shrink-0 bg-amber-100 text-amber-700">
+                  ★ Founding coach
                 </span>
               )}
             </h3>
