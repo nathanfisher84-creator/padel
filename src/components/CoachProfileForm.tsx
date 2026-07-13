@@ -112,6 +112,7 @@ export function CoachProfileForm({ initial }: { initial: ProfileValues }) {
         <div>
           <label className="label" htmlFor="currency">Currency</label>
           <select className="input" id="currency" name="currency" defaultValue={initial.currency}>
+            <option value="AED">AED د.إ</option>
             <option value="EUR">EUR €</option>
             <option value="USD">USD $</option>
             <option value="GBP">GBP £</option>
