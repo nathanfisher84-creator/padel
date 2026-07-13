@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { aiCoachEnabled, coachChat } from "@/lib/aiCoach";
 
 const bodySchema = z.object({
@@ -39,6 +40,10 @@ export async function POST(req: Request) {
 
   try {
     const reply = await coachChat(parsed.data.messages);
+    // Usage analytics (admin dashboard) — never fails the chat.
+    await db.aiChatMessage
+      .create({ data: { userId: session.id } })
+      .catch(() => {});
     return NextResponse.json({ reply });
   } catch (err) {
     console.error("AI coach chat failed:", err);

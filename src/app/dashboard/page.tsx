@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { AdminAnalytics } from "@/components/AdminAnalytics";
 import { ApproveCoachButton } from "@/components/ApproveCoachButton";
 import { ViewAsButton } from "@/components/ViewAsButton";
 import { getSession } from "@/lib/auth";
@@ -516,6 +517,7 @@ async function AdminDashboard() {
           </div>
         ))}
       </section>
+      <AdminAnalytics />
       <section>
         <h2 className="text-xl font-semibold">Recent payments</h2>
         <div className="card mt-4 overflow-x-auto !p-0">
