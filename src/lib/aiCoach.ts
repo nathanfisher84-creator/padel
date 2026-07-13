@@ -52,11 +52,11 @@ export function aiReviewEnabled(): boolean {
 /** Chat model id; overridable so a rename needs no code change. */
 const TEXT_MODEL = () => process.env.GEMINI_TEXT_MODEL ?? "gemini-3.5-flash";
 /**
- * Video-analysis model id. Paid reviews run on Pro: it reasons about video
- * substantially better than Flash, and reviews are asynchronous + paid, so
- * the extra latency/cost is well spent. Chat stays on Flash (free, instant).
+ * Video-analysis model id. gemini-3.5-flash is the stable GA flagship (there
+ * is no "gemini-3.5-pro"; the Pro tier is still a preview model — override
+ * with GEMINI_VIDEO_MODEL to experiment, e.g. gemini-3.1-pro-preview).
  */
-const VIDEO_MODEL = () => process.env.GEMINI_VIDEO_MODEL ?? "gemini-3.5-pro";
+const VIDEO_MODEL = () => process.env.GEMINI_VIDEO_MODEL ?? "gemini-3.5-flash";
 
 // ---------------------------------------------------------------------------
 // Knowledge base + guardrails
