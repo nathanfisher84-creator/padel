@@ -58,6 +58,10 @@ model CoachProfile {
   // True for the built-in AI coach (Nova): free chat, paid instant reviews
   // generated automatically; the platform keeps 100% of its payments.
   isAi              Boolean  @default(false)
+  // Coach Agreement click-wrap: when it was accepted and which version, as
+  // proof of acceptance. Null = not yet accepted (prompted on the dashboard).
+  agreementAcceptedAt DateTime?
+  agreementVersion    String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { createSession, hashPassword } from "@/lib/auth";
 import { Role } from "@/lib/constants";
+import { COACH_AGREEMENT_VERSION } from "@/lib/coachAgreement";
 import { redactContact, redactMaybe } from "@/lib/redact";
 
 const bodySchema = z.object({
@@ -22,6 +23,7 @@ const bodySchema = z.object({
   languages: z.string().trim().max(120).optional(),
   certifications: z.string().trim().max(1000).optional(),
   careerHighlights: z.string().trim().max(1000).optional(),
+  acceptCoachAgreement: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -37,6 +39,12 @@ export async function POST(req: Request) {
   if (data.role === Role.COACH && (!data.oneOffPrice || !data.monthlyPrice)) {
     return NextResponse.json(
       { error: "Coaches must set a one-off review price and a monthly price." },
+      { status: 400 }
+    );
+  }
+  if (data.role === Role.COACH && data.acceptCoachAgreement !== true) {
+    return NextResponse.json(
+      { error: "Please read and accept the Coach Agreement to join as a coach." },
       { status: 400 }
     );
   }
@@ -76,6 +84,8 @@ export async function POST(req: Request) {
                 languages: redactMaybe(data.languages),
                 certifications: redactMaybe(data.certifications),
                 careerHighlights: redactMaybe(data.careerHighlights),
+                agreementAcceptedAt: new Date(),
+                agreementVersion: COACH_AGREEMENT_VERSION,
               },
             },
           }

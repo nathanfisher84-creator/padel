@@ -142,6 +142,11 @@ export default async function RootLayout({
                     Coach dashboard
                   </Link>
                 </li>
+                <li>
+                  <Link href="/coach-terms" className="hover:text-white">
+                    Coach Agreement
+                  </Link>
+                </li>
               </ul>
               <p className="stat mt-4 text-sm text-ball-400">
                 Join free — coach players worldwide

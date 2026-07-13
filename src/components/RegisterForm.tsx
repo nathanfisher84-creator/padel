@@ -54,6 +54,7 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
           body.languages = form.get("languages");
           body.certifications = form.get("certifications");
           body.careerHighlights = form.get("careerHighlights");
+          body.acceptCoachAgreement = form.get("acceptCoachAgreement") === "on";
         }
         const res = await fetch("/api/auth/register", {
           method: "POST",
@@ -245,6 +246,27 @@ export function RegisterForm({ useBlobStorage }: { useBlobStorage: boolean }) {
               <span className="label">Intro video</span>
               <IntroVideoInput onChange={setIntroVideo} />
             </div>
+            <label className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700">
+              <input
+                type="checkbox"
+                name="acceptCoachAgreement"
+                required
+                className="mt-0.5 h-4 w-4 shrink-0 accent-court-600"
+              />
+              <span>
+                I have read and agree to the{" "}
+                <Link
+                  href="/coach-terms"
+                  target="_blank"
+                  className="font-semibold text-court-600 underline"
+                >
+                  Coach Agreement
+                </Link>{" "}
+                — a short, plain-language contract covering how you get paid
+                (you keep 80%), your response-time commitment, and keeping
+                coaching on the platform.
+              </span>
+            </label>
             <p className="text-xs text-slate-600">
               Joining is free. Every coach profile is reviewed by our team
               before going live — you&apos;ll see the status in your dashboard,
