@@ -166,3 +166,13 @@ model Review {
   comment      String?
   createdAt    DateTime        @default(now())
 }
+
+// One row per answered AI-coach chat message — powers the admin usage
+// analytics. Deliberately tiny (no content stored).
+model AiChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
