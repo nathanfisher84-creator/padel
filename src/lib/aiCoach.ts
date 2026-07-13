@@ -357,6 +357,7 @@ const MIME_BY_EXT: Record<string, string> = {
 type AnalysisJson = {
   reviewable: boolean;
   rejectionReason: string;
+  identification: string;
   inventory: string;
   level: string;
   summary: string;
@@ -372,6 +373,7 @@ const RESPONSE_SCHEMA = {
   properties: {
     reviewable: { type: "BOOLEAN" },
     rejectionReason: { type: "STRING" },
+    identification: { type: "STRING" },
     inventory: { type: "STRING" },
     level: { type: "STRING" },
     summary: { type: "STRING" },
@@ -419,11 +421,12 @@ const RESPONSE_SCHEMA = {
       },
     },
   },
-  // Validity gate, then inventory and level, before any coaching: the
-  // generation order IS the analysis order.
+  // Validity gate, then player identification, then inventory and level,
+  // before any coaching: the generation order IS the analysis order.
   propertyOrdering: [
     "reviewable",
     "rejectionReason",
+    "identification",
     "inventory",
     "level",
     "summary",
@@ -436,6 +439,7 @@ const RESPONSE_SCHEMA = {
   required: [
     "reviewable",
     "rejectionReason",
+    "identification",
     "inventory",
     "level",
     "summary",
@@ -445,6 +449,44 @@ const RESPONSE_SCHEMA = {
     "comments",
   ],
 } as const;
+
+/**
+ * The who-to-analyse block shared by reviews and pre-scans. Hardened against
+ * the classic failure: locking onto a partial outfit match (or the most
+ * prominent player) instead of matching shirt + shorts + starting position
+ * together by eliminating every player on court.
+ */
+function whoToAnalyseLines(input: AiReviewInput): string[] {
+  if (!input.playerOutfit) return [];
+  const where = input.playerSide
+    ? ` At the START of the video they are positioned: ${input.playerSide} (positions are as seen on screen from the camera).`
+    : "";
+  return [
+    "",
+    "WHO TO ANALYSE — this is critical. There may be up to four players on",
+    `court. The paying player — the ONLY one you are analysing — is wearing: ${input.playerOutfit}.${where}`,
+    "",
+    "IDENTIFY BY ELIMINATION, never by first impression:",
+    "1. Freeze on the opening seconds and describe EVERY player you can see:",
+    "   their position on screen and their full outfit (shirt AND shorts).",
+    "2. Match the target against the FULL description — shirt colour AND",
+    "   shorts colour AND starting position must ALL fit. Beware partial and",
+    "   INVERTED matches: another player may wear the same colours swapped",
+    "   (e.g. a white shirt with black shorts when the target wears a black",
+    "   shirt with grey shorts). A partner or opponent being larger in frame,",
+    "   closer to the camera, or more active does NOT make them the target.",
+    "3. Note distinguishing markers of the confirmed target (hair, cap, shoe",
+    "   colour, handedness) and use them to re-verify at EVERY moment you",
+    "   analyse or timestamp — players swap sides and cross the camera.",
+    "Track ONLY this player. Every observation, strength, improvement, drill",
+    "and timestamped note must be about THIS player; mention others only as",
+    "context. If you cannot confidently identify them, or the description",
+    "matches more than one person, say so explicitly and only analyse the",
+    "moments where you are certain — never guess and never silently analyse",
+    "a different player.",
+    "",
+  ];
+}
 
 function buildReviewPrompt(input: AiReviewInput): string {
   const lines = [
@@ -456,25 +498,7 @@ function buildReviewPrompt(input: AiReviewInput): string {
     "",
     `The player titled the video: "${input.title}".`,
   ];
-  if (input.playerOutfit) {
-    const where = input.playerSide
-      ? ` They start the video positioned: ${input.playerSide}.`
-      : "";
-    lines.push(
-      "",
-      "WHO TO ANALYSE — this is critical. There may be up to four players on",
-      `court. The paying player — the ONLY one you are reviewing — is wearing: ${input.playerOutfit}.${where}`,
-      "Track this player throughout the footage. Every strength, improvement,",
-      "drill and timestamped note must be about THIS player. Mention other",
-      "players only as context (e.g. their partner's positioning relative to",
-      "them, or opponents' shots they had to deal with).",
-      "If at any point you cannot confidently identify this player, or the",
-      "description matches more than one person, say so explicitly in the",
-      "summary and review only the moments where you are certain — never guess",
-      "and never silently review a different player.",
-      ""
-    );
-  }
+  lines.push(...whoToAnalyseLines(input));
   if (input.notes) {
     lines.push(`The player's notes to the coach: "${input.notes}".`);
   }
@@ -500,7 +524,13 @@ function buildReviewPrompt(input: AiReviewInput): string {
     "the summary instead of rejecting. If reviewable, set reviewable=true and",
     "rejectionReason to an empty string.",
     "",
-    "STAGE 1 — INVENTORY (evidence gathering). Watch the whole video and write",
+    "STAGE 1 — IDENTIFY THE PLAYER. Perform the identify-by-elimination steps",
+    "from WHO TO ANALYSE above (describe every player at the start, match the",
+    "full description, note distinguishing markers). You will report this in",
+    "the identification field so the player can confirm you watched the right",
+    "person.",
+    "",
+    "STAGE 2 — INVENTORY (evidence gathering). Watch the whole video and write",
     "a factual inventory of what happened BEFORE forming any coaching opinion:",
     "roughly how many rallies/points you saw, which shots THIS player actually",
     "hit (serves, returns, volleys, bandejas, smashes, lobs, glass play...) and",
@@ -509,7 +539,7 @@ function buildReviewPrompt(input: AiReviewInput): string {
     "ladder (beginner / improver / intermediate / advanced) using the markers",
     "in your knowledge base.",
     "",
-    "STAGE 2 — COACH off that evidence. Every conclusion must trace back to",
+    "STAGE 3 — COACH off that evidence. Every conclusion must trace back to",
     "something in your inventory. Calibrate every recommendation to the level",
     "you assessed — fix the highest-impact issues for THAT level, per your",
     "coaching principles.",
@@ -520,7 +550,13 @@ function buildReviewPrompt(input: AiReviewInput): string {
     "than guessing. Be encouraging but honest.",
     "",
     "Return JSON with:",
-    "- inventory: your stage-1 inventory, 3-6 sentences, written to the player",
+    "- identification: 1-3 sentences to the player confirming exactly who you",
+    "  tracked and how you told them apart from the others (e.g. \"I watched",
+    "  you — black shirt and grey shorts, starting on the near left — and",
+    "  distinguished you from your partner in the white shirt and black",
+    "  shorts\"). If no outfit description was provided, describe the player",
+    "  you analysed. If you were not fully confident, say so here plainly.",
+    "- inventory: your stage-2 inventory, 3-6 sentences, written to the player",
     "  (\"I watched ... you hit roughly ...\"). Factual, no advice yet.",
     "- level: one word — beginner, improver, intermediate or advanced.",
     "- summary: 2-4 sentences on their game and level, addressed to the player.",
@@ -641,8 +677,11 @@ async function loadVideo(
 function formatContent(a: AnalysisJson): string {
   const parts: string[] = [a.summary.trim()];
 
+  if (a.identification?.trim()) {
+    parts.push("WHO I WATCHED\n" + a.identification.trim());
+  }
   if (a.inventory?.trim()) {
-    parts.push("WHAT I WATCHED\n" + a.inventory.trim());
+    parts.push("WHAT I SAW\n" + a.inventory.trim());
   }
   if (a.strengths.length) {
     parts.push(
@@ -770,6 +809,8 @@ export async function generateAiReview(
 // ---------------------------------------------------------------------------
 
 export type AiPrescan = {
+  /** Who the AI tracked and how it told them apart — for the coach to verify. */
+  identification?: string;
   /** Factual inventory of the footage, written to the coach. */
   inventory: string;
   /** One-word level estimate (beginner/improver/intermediate/advanced). */
@@ -781,6 +822,7 @@ export type AiPrescan = {
 const PRESCAN_SCHEMA = {
   type: "OBJECT",
   properties: {
+    identification: { type: "STRING" },
     inventory: { type: "STRING" },
     level: { type: "STRING" },
     suggestions: {
@@ -795,8 +837,8 @@ const PRESCAN_SCHEMA = {
       },
     },
   },
-  propertyOrdering: ["inventory", "level", "suggestions"],
-  required: ["inventory", "level", "suggestions"],
+  propertyOrdering: ["identification", "inventory", "level", "suggestions"],
+  required: ["identification", "inventory", "level", "suggestions"],
 } as const;
 
 function buildPrescanPrompt(input: AiReviewInput): string {
@@ -811,20 +853,7 @@ function buildPrescanPrompt(input: AiReviewInput): string {
     "",
     `The player titled the video: "${input.title}".`,
   ];
-  if (input.playerOutfit) {
-    const where = input.playerSide
-      ? ` They start the video positioned: ${input.playerSide}.`
-      : "";
-    lines.push(
-      "",
-      "WHO TO ANALYSE — this is critical. There may be up to four players on",
-      `court. The paying player is wearing: ${input.playerOutfit}.${where}`,
-      "Track ONLY this player; mention others only as context. If you cannot",
-      "confidently identify them, say so in the inventory and only include",
-      "suggestions for moments where you are certain.",
-      ""
-    );
-  }
+  lines.push(...whoToAnalyseLines(input));
   if (input.notes) {
     lines.push(`The player's notes to the coach: "${input.notes}".`);
   }
@@ -837,6 +866,10 @@ function buildPrescanPrompt(input: AiReviewInput): string {
   lines.push(
     "",
     "Watch the ENTIRE video, then return JSON with:",
+    "- identification: 1-2 sentences to the coach: which player you tracked",
+    "  and how you told them apart from the others (outfit + position at the",
+    "  start + any distinguishing markers). If you were not fully confident,",
+    "  say so plainly.",
     "- inventory: 3-6 sentences to the coach: roughly how many rallies/points,",
     "  which shots THIS player hit and how each category tended to end, and",
     "  where they spent their time on court. Factual, no advice.",
@@ -857,6 +890,8 @@ function buildPrescanPrompt(input: AiReviewInput): string {
 /** Deterministic pre-scan for dev/preview environments without an AI key. */
 export function demoAiPrescan(): AiPrescan {
   return {
+    identification:
+      "Demo mode: I'd confirm here exactly which player I tracked and how I told them apart.",
     inventory:
       "⚠ Demo mode (no AI key configured): this is a sample pre-scan — the video was not analysed. I'd normally summarise the rallies, the player's shot mix and outcomes, and where they spent their time on court.",
     level: "improver",
@@ -915,13 +950,19 @@ export async function generateAiPrescan(
     .join("");
   if (!text) throw new Error("The model returned no pre-scan.");
 
-  let raw: { inventory: string; level: string; suggestions: { timeSeconds: number; note: string }[] };
+  let raw: {
+    identification?: string;
+    inventory: string;
+    level: string;
+    suggestions: { timeSeconds: number; note: string }[];
+  };
   try {
     raw = JSON.parse(text);
   } catch {
     throw new Error("The model returned malformed pre-scan JSON.");
   }
   return {
+    identification: raw.identification?.trim() || undefined,
     inventory: raw.inventory?.trim() || "No inventory produced.",
     level: raw.level?.trim().toLowerCase() || "unknown",
     suggestions: (raw.suggestions ?? [])

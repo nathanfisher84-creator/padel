@@ -4,7 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Suggestion = { id: string; timeSeconds: number; note: string };
-type Prescan = { inventory: string; level: string; suggestions: Suggestion[] };
+type Prescan = {
+  identification?: string;
+  inventory: string;
+  level: string;
+  suggestions: Suggestion[];
+};
 
 function fmt(t: number): string {
   const m = Math.floor(t / 60);
@@ -145,6 +150,12 @@ export function CoachPrescan({
           private to you — the player sees only what you accept
         </span>
       </h2>
+      {prescan.identification && (
+        <p className="mt-2 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <span className="font-semibold text-slate-700">Player tracked:</span>{" "}
+          {prescan.identification}
+        </p>
+      )}
       <p className="mt-2 whitespace-pre-line text-sm text-slate-700">
         {prescan.inventory}
       </p>
