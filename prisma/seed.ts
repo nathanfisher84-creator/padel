@@ -20,23 +20,25 @@ const seedDemo = process.env.SEED_DEMO === "true" || !isProd;
 // before going live.
 const PREVIEW_DEMO = true;
 
-// Canonical profile for the built-in AI coach. Free (zero price), instant,
-// specialised in the beginner + tactics segment.
+// Canonical profile for the built-in AI coach: free chat as the lead magnet,
+// paid instant video reviews as the cheap entry tier below the human coaches.
+// The platform keeps 100% of AI coach payments (see src/lib/payments.ts).
 const AI_COACH_PROFILE = {
   photoUrl: "/avatars/nova.svg",
   isPublished: true,
   turnaroundHours: 24, // display is overridden to "Instant" for AI coaches
   languages: "English, Spanish, French",
   certifications: null as string | null,
-  careerHighlights: null as string | null,
-  headline: "Your instant AI padel coach — free tactics & fundamentals, on tap",
-  bestFor: "beginners & tactics",
-  bio: "I'm Nova, PadelPro's AI coach. Ask me anything about padel — grip, positioning, when to lob, how to hit a bandeja, doubles tactics — and I'll answer instantly, for free. You can also upload a short clip and I'll break it down with timestamped notes. For a deep, human eye on your technique, our pro coaches are one tap away.",
+  careerHighlights:
+    "Free padel chat — ask anything, anytime\nWatches your entire video, moment by moment\nTimestamped notes pinned to your footage\nDelivers in minutes, around the clock",
+  headline: "Instant AI coaching — free chat, video reviews in minutes",
+  bestFor: "a fast, affordable first analysis of your game",
+  bio: "I'm Nova, PadelPro's AI coach. Ask me anything about padel — grip, positioning, when to lob, how to hit a bandeja, doubles tactics — and I'll answer instantly, free. When you want feedback on your actual game, send me a match or training video: I watch the whole thing and return written feedback with timestamped notes pinned to the exact moments, within minutes. For a deep, human eye on your technique, our pro coaches are one tap away.",
   location: "Online · instant",
   experienceYears: 0,
-  oneOffPriceCents: 0,
-  monthlyPriceCents: 0,
-  monthlyVideoLimit: 30,
+  oneOffPriceCents: 700,
+  monthlyPriceCents: 1900,
+  monthlyVideoLimit: 8,
   currency: "EUR",
 };
 
@@ -61,7 +63,8 @@ async function main() {
 
   // The built-in AI coach ("Nova") is a real product feature, so seed it in
   // every environment — including production — not just the demo data. It has
-  // no usable password (nobody logs in as it) and is always free.
+  // no usable password (nobody logs in as it). Chat is free; video reviews
+  // are the paid instant tier.
   await db.user.upsert({
     where: { email: "nova@padelpro.ai" },
     update: {

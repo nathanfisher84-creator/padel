@@ -6,7 +6,7 @@ import { Role, SubmissionStatus } from "@/lib/constants";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { RatingForm } from "@/components/RatingForm";
 import { AnalysisPlayer } from "@/components/AnalysisPlayer";
-import { AiReviewTrigger } from "@/components/AiReviewTrigger";
+import { AiReviewRunner } from "@/components/AiReviewRunner";
 import { blobUploadsEnabled } from "@/lib/storage";
 import { FOCUS_SHOTS } from "@/lib/constants";
 
@@ -34,9 +34,9 @@ export default async function SubmissionPage({
 
   const isPlayer = session.id === submission.playerId;
   const isCoach = session.id === submission.coachId;
+  const isAiCoach = Boolean(submission.coach.coachProfile?.isAi);
   if (!isPlayer && !isCoach && session.role !== Role.ADMIN) notFound();
 
-  const isAiCoach = Boolean(submission.coach.coachProfile?.isAi);
   // The coach annotates while the review is open; once delivered the notes
   // become part of the read-only feedback the player sees. The AI coach writes
   // its own notes, so there's no human annotation window.
@@ -62,7 +62,8 @@ export default async function SubmissionPage({
           </span>
         </div>
         <p className="mt-1 text-slate-600">
-          {submission.player.name} → Coach {submission.coach.name} ·{" "}
+          {submission.player.name} →{" "}
+          {isAiCoach ? submission.coach.name : `Coach ${submission.coach.name}`} ·{" "}
           {formatDate(submission.createdAt)}
         </p>
       </div>
@@ -99,7 +100,9 @@ export default async function SubmissionPage({
       {submission.feedback ? (
         <div className="card border-ball-500/40 bg-ball-500/5">
           <h2 className="font-semibold">
-            Feedback from Coach {submission.coach.name}
+            {isAiCoach
+              ? "Your AI coach analysis"
+              : `Feedback from Coach ${submission.coach.name}`}
           </h2>
           <p className="mt-1 text-xs text-slate-600">
             {formatDate(submission.feedback.createdAt)}
@@ -117,7 +120,7 @@ export default async function SubmissionPage({
           </p>
         </div>
       ) : isAiCoach && isPlayer ? (
-        <AiReviewTrigger submissionId={submission.id} />
+        <AiReviewRunner submissionId={submission.id} />
       ) : isCoach ? (
         <FeedbackForm
           submissionId={submission.id}

@@ -12,6 +12,7 @@ import {
   MAX_VIDEO_BYTES,
   VIDEO_CONTENT_TYPES,
 } from "@/lib/storage";
+import { notifyCoachNewSubmission, notifyOwnerAiUpload } from "@/lib/email";
 
 function uploadDir(): string {
   return process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
@@ -114,18 +115,22 @@ async function createSubmission(
   videoPath: string,
   focusShots: string | null
 ) {
-  // The AI coach is free: no credit or subscription required.
   const coach = await db.user.findUnique({
     where: { id: coachId },
-    include: { coachProfile: { select: { isAi: true, isPublished: true } } },
+    select: {
+      email: true,
+      name: true,
+      coachProfile: { select: { isAi: true, isPublished: true } },
+    },
   });
   if (!coach?.coachProfile?.isPublished) {
     return NextResponse.json({ error: "Coach not found." }, { status: 404 });
   }
-  const isAi = coach.coachProfile.isAi;
 
-  const entitlement = isAi ? null : await getEntitlementForCoach(session.id, coachId);
-  if (!isAi && !entitlement) {
+  // Every review — human or AI — requires a credit or subscription. Nova's
+  // chat is the free tier; watching a full video is the paid one.
+  const entitlement = await getEntitlementForCoach(session.id, coachId);
+  if (!entitlement) {
     return NextResponse.json(
       {
         error:
@@ -145,9 +150,28 @@ async function createSubmission(
       videoPath,
       status: SubmissionStatus.AWAITING_FEEDBACK,
       // A one-off credit is consumed by linking the payment to this submission.
-      paymentId: entitlement?.source === "credit" ? entitlement.paymentId : null,
+      paymentId: entitlement.source === "credit" ? entitlement.paymentId : null,
     },
   });
+
+  // Notify (best-effort, never fails the upload): a human coach gets the
+  // new-video email; an AI submission alerts the owner instead — the AI
+  // review itself is kicked off by the player's submission page.
+  if (coach?.coachProfile?.isAi) {
+    await notifyOwnerAiUpload({
+      playerName: session.name,
+      title,
+      submissionId: submission.id,
+    });
+  } else if (coach) {
+    await notifyCoachNewSubmission({
+      coachEmail: coach.email,
+      coachName: coach.name,
+      playerName: session.name,
+      title,
+      submissionId: submission.id,
+    });
+  }
 
   return NextResponse.json({ ok: true, id: submission.id });
 }

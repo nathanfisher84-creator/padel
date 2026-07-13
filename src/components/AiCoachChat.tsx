@@ -13,7 +13,7 @@ const STARTERS = [
 ];
 
 const GREETING =
-  "Hi, I'm Nova 👋 your AI padel coach. Ask me anything about technique, tactics, positioning or drills — or upload a short clip and I'll break it down. What do you want to work on?";
+  "Hi, I'm Nova 👋 your AI padel coach. Ask me anything about technique, tactics, positioning or drills — chatting is free. And when you want feedback on your actual game, send me a match video and I'll pin timestamped notes to your footage. What do you want to work on?";
 
 export function AiCoachChat({
   loggedIn,

@@ -26,7 +26,7 @@ also power a future native mobile app.
 
 | Role | What they can do |
 | --- | --- |
-| **Player** | Register free · browse coaches · buy a one-off review or monthly plan · upload videos (MP4/MOV/WEBM/AVI, up to 500 MB) · receive written feedback |
+| **Player** | Register free · browse coaches · buy a one-off review or monthly plan · upload videos (MP4/MOV/WEBM/AVI, up to 500 MB) · receive written feedback — from a human coach or the instant **AI Coach** |
 | **Coach** | Register free · manage public profile & pricing · review queue of submitted videos · watch videos & send feedback · see earnings (after platform fee) and active subscriber count |
 | **Admin (owner)** | Platform dashboard: gross revenue, platform earnings, coach payouts, user/submission counts, full payment ledger |
 
@@ -79,7 +79,9 @@ See [`.env.example`](.env.example) for the full list:
 | `STRIPE_SECRET_KEY` | Enables real Stripe Checkout (optional) |
 | `STRIPE_WEBHOOK_SECRET` | Signing secret for `/api/stripe/webhook` |
 | `UPLOAD_DIR` | Where uploaded videos are stored (default `./uploads`) |
-| `GEMINI_API_KEY` | Enables AI-standardized coach profile photos (optional) |
+| `GEMINI_API_KEY` | Enables the AI Coach video reviews and AI-standardized coach photos (optional) |
+| `RESEND_API_KEY` | Enables email notifications via Resend (optional) |
+| `OWNER_NOTIFY_EMAIL` | Where owner sale/AI-upload alerts go (falls back to `ADMIN_EMAIL`) |
 
 ## Deploying to Vercel
 
@@ -148,6 +150,52 @@ actions for the owner:
 > connected account and pay their share out on a schedule. Until then, coach
 > balances are visible in the coach dashboard and admin ledger for manual
 > payouts.
+
+## Email notifications
+
+With `RESEND_API_KEY` set (get one free at [resend.com](https://resend.com)),
+the app sends transactional email at the three moments that matter:
+
+- **Coach**: a player uploaded a video for review (with a direct link).
+- **Player**: their feedback was delivered — by a human coach or the AI coach.
+- **Owner**: every sale (amount + platform share) and every AI coach upload,
+  sent to `OWNER_NOTIFY_EMAIL` (or `ADMIN_EMAIL` if unset).
+
+Sending is best-effort: a failed email never blocks an upload, a review or a
+payment. Without a key the feature is off and everything else works normally.
+Until you verify a sending domain in Resend, leave `EMAIL_FROM` unset — the
+default test sender delivers to your own Resend account address, which is
+enough to try it. `GET /api/health` reports `email` (`resend` or `off`).
+
+## Nova, the AI Coach (free chat + paid instant video reviews)
+
+Alongside the human coaches, the marketplace ships with **Nova**, a built-in
+AI coach with a two-tier funnel:
+
+- **Free chat** (`/ai-coach`): a padel-only coaching chat with a curated
+  knowledge base and guardrails — the lead magnet. Log in and ask anything
+  about technique, tactics or positioning.
+- **Paid instant video reviews** (€7 one-off / €19 per month for 8, seeded
+  and editable in `prisma/seed.ts`): works exactly like a human coach from
+  the player's point of view — buy → upload — but delivery is automated.
+  Right after upload, Gemini watches the **full video** (via the Files API,
+  so complete match videos work, not just short clips) and generates the
+  review in minutes: a written analysis (strengths, the 3 highest-impact
+  fixes, drills) plus **timestamped notes pinned to the exact moments** in
+  the footage, in the same analysis workspace human coaches use.
+
+- **Revenue**: the platform keeps 100% of AI coach payments (there is no
+  human coach to pay out); every payment is still recorded in the ledger.
+- **Setup**: set `GEMINI_API_KEY` (same key as photo standardization). Model
+  overrides: `GEMINI_VIDEO_MODEL` / `GEMINI_TEXT_MODEL` (both default to
+  `gemini-2.5-flash`).
+- **Without a key**: dev/preview deployments serve a clearly-labelled demo
+  review so the full flow is testable; production reports the AI coach
+  unavailable and hides it from the directory. Dev chat can be exercised
+  with `AI_COACH_FAKE=1`.
+- `GET /api/health` reports `aiCoach` (`gemini`, `demo` or `off`).
+- The AI coach account (`nova@padelpro.ai`) is seeded in every environment
+  with a random, unusable password — nobody can log in as it.
 
 ## Standardized coach photos (AI)
 

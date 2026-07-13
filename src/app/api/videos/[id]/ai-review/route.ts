@@ -1,59 +1,34 @@
 import { NextResponse } from "next/server";
-import { readFile } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { Role, SubmissionStatus } from "@/lib/constants";
-import { aiCoachEnabled, analyzeSubmissionVideo } from "@/lib/aiCoach";
+import { demoPaymentsAllowed } from "@/lib/config";
+import { Role, SubmissionStatus, FOCUS_SHOTS } from "@/lib/constants";
+import { redactContact } from "@/lib/redact";
+import { notifyPlayerFeedbackDelivered } from "@/lib/email";
+import {
+  aiReviewEnabled,
+  generateAiReview,
+  demoAiReview,
+  type AiReviewResult,
+} from "@/lib/aiCoach";
 
-// Gemini inline request payloads must stay under ~20MB; base64 inflates bytes
-// by ~1/3, so cap the raw clip well below that. Larger clips still get a
-// notes-based review (and a nudge toward a human coach). Overridable.
-function inlineVideoCap(): number {
-  const raw = Number(process.env.AI_VIDEO_MAX_BYTES ?? 14_000_000);
-  return Number.isFinite(raw) && raw > 0 ? raw : 14_000_000;
-}
-
-const MIME: Record<string, string> = {
-  ".mp4": "video/mp4",
-  ".mov": "video/quicktime",
-  ".webm": "video/webm",
-  ".avi": "video/x-msvideo",
-};
+// Watching a full match video takes real time: Gemini has to ingest and
+// process the file before analysing it. Allow the maximum function duration.
+export const maxDuration = 300;
 
 function uploadDir(): string {
   return process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
 }
 
-/** Fetch the clip's bytes if it's within the inline-analysis size cap. */
-async function loadVideo(
-  videoPath: string
-): Promise<{ base64: string; mimeType: string } | null> {
-  try {
-    let buf: Buffer;
-    let ext: string;
-    if (videoPath.startsWith("https://")) {
-      const res = await fetch(videoPath);
-      if (!res.ok) return null;
-      const len = Number(res.headers.get("content-length") ?? 0);
-      if (len && len > inlineVideoCap()) return null;
-      const arr = Buffer.from(await res.arrayBuffer());
-      if (arr.byteLength > inlineVideoCap()) return null;
-      buf = arr;
-      ext = path.extname(new URL(videoPath).pathname).toLowerCase();
-    } else {
-      const file = path.join(uploadDir(), path.basename(videoPath));
-      buf = await readFile(file);
-      if (buf.byteLength > inlineVideoCap()) return null;
-      ext = path.extname(file).toLowerCase();
-    }
-    return { base64: buf.toString("base64"), mimeType: MIME[ext] ?? "video/mp4" };
-  } catch {
-    return null;
-  }
-}
-
-/** Generate Nova's instant review for a submission sent to the AI coach. */
+/**
+ * Run the AI coach on a submission addressed to the platform's AI coach:
+ * generates written feedback plus timestamped notes and delivers them
+ * exactly like a human coach's review. Idempotent — a submission that has
+ * feedback already (or gains it concurrently) returns ok without rerunning.
+ *
+ * Triggered by the player from the submission page right after upload.
+ */
 export async function POST(
   _req: Request,
   { params }: { params: { id: string } }
@@ -65,67 +40,112 @@ export async function POST(
 
   const submission = await db.videoSubmission.findUnique({
     where: { id: params.id },
-    include: { feedback: true, coach: { include: { coachProfile: true } } },
+    include: {
+      feedback: true,
+      coach: { include: { coachProfile: { select: { isAi: true } } } },
+      player: { select: { email: true, name: true } },
+    },
   });
-  if (!submission) {
+  if (
+    !submission ||
+    (session.id !== submission.playerId && session.role !== Role.ADMIN)
+  ) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
-  }
-  const allowed =
-    session.id === submission.playerId || session.role === Role.ADMIN;
-  if (!allowed) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (!submission.coach.coachProfile?.isAi) {
     return NextResponse.json(
-      { error: "This submission is not with the AI coach." },
+      { error: "This submission is with a human coach." },
       { status: 400 }
     );
   }
-  // Idempotent: if Nova already reviewed it, just report success.
   if (submission.feedback) {
     return NextResponse.json({ ok: true, alreadyReviewed: true });
   }
-  if (!aiCoachEnabled()) {
+
+  const focusShots: string[] = (submission.focusShots?.split(",") ?? [])
+    .map((key) => FOCUS_SHOTS.find((s) => s.key === key)?.label)
+    .filter((label): label is NonNullable<typeof label> => Boolean(label));
+
+  let result: AiReviewResult;
+  if (aiReviewEnabled()) {
+    try {
+      const video = submission.videoPath.startsWith("https://")
+        ? ({ kind: "url", url: submission.videoPath } as const)
+        : ({
+            kind: "file",
+            path: path.join(uploadDir(), path.basename(submission.videoPath)),
+          } as const);
+      const generated = await generateAiReview({
+        video,
+        title: submission.title,
+        notes: submission.notes,
+        focusShots,
+      });
+      if (!generated) throw new Error("AI review unexpectedly unavailable.");
+      result = generated;
+    } catch (err) {
+      console.error("AI review generation failed:", err);
+      return NextResponse.json(
+        {
+          error:
+            "The AI coach couldn't analyse this video. Nothing was used up — please try again in a minute.",
+        },
+        { status: 502 }
+      );
+    }
+  } else if (demoPaymentsAllowed()) {
+    // Local dev / preview without a key: deliver a clearly-labelled sample.
+    result = demoAiReview({ title: submission.title, focusShots });
+  } else {
     return NextResponse.json(
-      { error: "The AI coach is not available right now." },
+      { error: "AI reviews are not available right now. Please try again later." },
       { status: 503 }
     );
   }
 
   try {
-    const video = await loadVideo(submission.videoPath);
-    const review = await analyzeSubmissionVideo({
-      title: submission.title,
-      notes: submission.notes,
-      focusShots: submission.focusShots,
-      video,
-    });
-
     await db.$transaction([
       db.feedback.create({
-        data: { submissionId: submission.id, content: review.content },
+        data: {
+          submissionId: submission.id,
+          content: redactContact(result.content),
+        },
       }),
-      ...review.comments.map((c) =>
-        db.feedbackComment.create({
-          data: {
-            submissionId: submission.id,
-            timeSeconds: c.timeSeconds,
-            body: c.body,
-          },
-        })
-      ),
+      ...(result.comments.length
+        ? [
+            db.feedbackComment.createMany({
+              data: result.comments.map((c) => ({
+                submissionId: submission.id,
+                timeSeconds: c.timeSeconds,
+                body: redactContact(c.body),
+              })),
+            }),
+          ]
+        : []),
       db.videoSubmission.update({
         where: { id: submission.id },
         data: { status: SubmissionStatus.REVIEWED },
       }),
     ]);
-
-    return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("AI review failed:", err);
-    return NextResponse.json(
-      { error: "Nova couldn't analyse this clip. Please try again." },
-      { status: 502 }
-    );
+    // Unique constraint on Feedback.submissionId: a concurrent run already
+    // delivered the review — that's success, not an error.
+    if ((err as { code?: string })?.code === "P2002") {
+      return NextResponse.json({ ok: true, alreadyReviewed: true });
+    }
+    throw err;
   }
+
+  // Best-effort; the review is already delivered. The player is usually
+  // still on the page watching it arrive — the email covers those who left.
+  await notifyPlayerFeedbackDelivered({
+    playerEmail: submission.player.email,
+    playerName: submission.player.name,
+    coachName: submission.coach.name,
+    title: submission.title,
+    submissionId: submission.id,
+    isAi: true,
+  });
+
+  return NextResponse.json({ ok: true });
 }

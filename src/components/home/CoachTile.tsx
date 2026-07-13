@@ -31,7 +31,7 @@ export function CoachTile({ profile }: { profile: PublicCoach }) {
         )}
         <span className="stat absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-court-800 shadow-sm">
           {profile.isAi
-            ? "Instant · Free"
+            ? "Instant · Free chat"
             : profile.avgRating !== null
               ? `★ ${profile.avgRating.toFixed(1)} (${profile.reviewCount})`
               : `Replies in ${turnaroundLabel(profile.turnaroundHours)}`}
@@ -59,7 +59,7 @@ export function CoachTile({ profile }: { profile: PublicCoach }) {
       )}
       <p className="stat mt-1 text-sm font-semibold text-court-800">
         {profile.isAi
-          ? "Free — chat & video review"
+          ? `Free chat · Video review ${formatMoney(profile.oneOffPriceCents, profile.currency)}`
           : `Video review from ${formatMoney(profile.oneOffPriceCents, profile.currency)}`}
       </p>
     </Link>

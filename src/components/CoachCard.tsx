@@ -12,7 +12,6 @@ export type PublicCoach = {
   userId: string;
   headline: string;
   bestFor: string | null;
-  isAi: boolean;
   bio: string;
   location: string | null;
   experienceYears: number;
@@ -21,6 +20,7 @@ export type PublicCoach = {
   monthlyPriceCents: number;
   currency: string;
   turnaroundHours: number;
+  isAi: boolean;
   user: { name: string };
   avgRating: number | null;
   reviewCount: number;
@@ -37,7 +37,14 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
     >
       <div className="flex-1 p-6">
         <div className="flex items-center gap-4">
-          {profile.photoUrl ? (
+          {profile.isAi ? (
+            <div
+              aria-hidden
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-court-700 to-ball-500 text-2xl text-white"
+            >
+              ✦
+            </div>
+          ) : profile.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.photoUrl}
@@ -64,7 +71,7 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
             </h3>
             <p className="stat truncate text-xs uppercase tracking-wide text-slate-600">
               {profile.isAi
-                ? "Instant · always on"
+                ? "Instant AI analysis · Always available"
                 : `${profile.location || "Online coaching"}${
                     profile.experienceYears > 0
                       ? ` · ${profile.experienceYears} yrs`
@@ -84,7 +91,7 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
         <div className="stat mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="font-semibold text-court-800">
             {profile.isAi
-              ? "Replies instantly"
+              ? "Feedback in minutes"
               : `Replies in ${turnaroundLabel(profile.turnaroundHours)}`}
           </span>
           {profile.isAi ? (
@@ -99,35 +106,29 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
           )}
         </div>
       </div>
-      {profile.isAi ? (
-        <div className="stat border-t border-slate-200 px-6 py-3 text-sm">
-          <span className="text-[11px] uppercase tracking-wide text-slate-600">
-            Price
-          </span>
-          <p className="mt-0.5 font-semibold text-court-800">
-            Free — start coaching now
-          </p>
+      <dl className="stat grid grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 text-sm">
+        <div className="px-6 py-3">
+          <dt className="text-[11px] uppercase tracking-wide text-slate-600">
+            {profile.isAi ? "AI chat" : "Video review"}
+          </dt>
+          <dd className="mt-0.5 font-semibold text-court-800">
+            {profile.isAi
+              ? "Free"
+              : formatMoney(profile.oneOffPriceCents, profile.currency)}
+          </dd>
         </div>
-      ) : (
-        <dl className="stat grid grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 text-sm">
-          <div className="px-6 py-3">
-            <dt className="text-[11px] uppercase tracking-wide text-slate-600">
-              Video review
-            </dt>
-            <dd className="mt-0.5 font-semibold text-court-800">
-              {formatMoney(profile.oneOffPriceCents, profile.currency)}
-            </dd>
-          </div>
-          <div className="px-6 py-3">
-            <dt className="text-[11px] uppercase tracking-wide text-slate-600">
-              Monthly plan
-            </dt>
-            <dd className="mt-0.5 font-semibold text-court-800">
-              {formatMoney(profile.monthlyPriceCents, profile.currency)}
-            </dd>
-          </div>
-        </dl>
-      )}
+        <div className="px-6 py-3">
+          <dt className="text-[11px] uppercase tracking-wide text-slate-600">
+            {profile.isAi ? "Video review" : "Monthly plan"}
+          </dt>
+          <dd className="mt-0.5 font-semibold text-court-800">
+            {formatMoney(
+              profile.isAi ? profile.oneOffPriceCents : profile.monthlyPriceCents,
+              profile.currency
+            )}
+          </dd>
+        </div>
+      </dl>
     </Link>
   );
 }
