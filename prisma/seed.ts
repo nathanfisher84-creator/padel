@@ -191,6 +191,13 @@ async function main() {
     },
   ];
 
+  // Demo coaches count as having accepted the Coach Agreement, so the
+  // dashboard acceptance prompt only appears for real coach accounts.
+  // Keep the version in sync with src/lib/coachAgreement.ts.
+  const demoAgreement = {
+    agreementAcceptedAt: new Date(),
+    agreementVersion: "1.0",
+  };
   for (const coach of coaches) {
     const { email, name, ...profile } = coach;
     await db.user.upsert({
@@ -201,8 +208,8 @@ async function main() {
       update: {
         coachProfile: {
           upsert: {
-            update: { ...profile, isPublished: true },
-            create: profile,
+            update: { ...profile, ...demoAgreement, isPublished: true },
+            create: { ...profile, ...demoAgreement },
           },
         },
       },
@@ -211,7 +218,7 @@ async function main() {
         name,
         passwordHash,
         role: "COACH",
-        coachProfile: { create: profile },
+        coachProfile: { create: { ...profile, ...demoAgreement } },
       },
     });
   }

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { AdminAnalytics } from "@/components/AdminAnalytics";
 import { ApproveCoachButton } from "@/components/ApproveCoachButton";
+import { CoachAgreementPrompt } from "@/components/CoachAgreementPrompt";
+import { COACH_AGREEMENT_VERSION } from "@/lib/coachAgreement";
 import { ViewAsButton } from "@/components/ViewAsButton";
 import { getSession } from "@/lib/auth";
 import { getEntitlements } from "@/lib/entitlements";
@@ -224,6 +226,12 @@ async function CoachDashboard({ userId }: { userId: string }) {
           Edit my profile
         </Link>
       </div>
+
+      {profile &&
+        !profile.isAi &&
+        profile.agreementVersion !== COACH_AGREEMENT_VERSION && (
+          <CoachAgreementPrompt />
+        )}
 
       {profile && !profile.isPublished && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
