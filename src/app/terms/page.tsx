@@ -9,6 +9,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
     body: [
       "PadelPro Coaching is a marketplace that connects padel players with independent coaches for video-based analysis. Players purchase one-off video reviews or monthly plans; coaches review the submitted footage and deliver personal feedback.",
       "Coaches on PadelPro are independent professionals, not employees of the platform. Each coach sets their own prices and commits to their own response time.",
+      "PadelPro is operated by Hello Maya Events FZ-LLC, a Free Zone Limited Liability Company registered with the Ras Al Khaimah Economic Zone Authority (RAKEZ), Licence No. 17007155, Compass Building, Al Shohada Road, Al Hamra Industrial Zone-FZ, Ras Al Khaimah, United Arab Emirates.",
     ],
   },
   {
