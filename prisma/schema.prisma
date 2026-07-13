@@ -118,6 +118,11 @@ model VideoSubmission {
   // analyses the right person: what they're wearing + where they start.
   playerOutfit String?
   playerSide   String? // see PLAYER_SIDES
+  // Tap-to-identify: a small JPEG (data URL) of the paying player cropped
+  // from the video's opening frame, plus the tapped point (normalised "x,y").
+  // Turns AI player identification into reference-photo matching.
+  playerRefImage String?
+  playerRefPoint String?
   // Comma-separated shot keys the player wants analysed (see FOCUS_SHOTS).
   focusShots String?
   videoPath  String

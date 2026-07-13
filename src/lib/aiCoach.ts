@@ -336,7 +336,48 @@ export type AiReviewInput = {
   playerOutfit: string | null;
   /** Human-readable starting position, e.g. "Nearest the camera, left side". */
   playerSide: string | null;
+  /**
+   * Tap-to-identify reference: a JPEG crop of the player from the video's
+   * opening frame (data URL) + the tapped point normalised 0-1. When present,
+   * identification becomes reference-photo matching instead of a clothing
+   * description.
+   */
+  playerRef?: { point: string | null; image: string | null } | null;
 };
+
+/** Parts for the reference photo + its location, prepended to video prompts. */
+function playerRefParts(
+  input: AiReviewInput
+): { inlineData: { mimeType: string; data: string } }[] {
+  const image = input.playerRef?.image;
+  if (!image?.startsWith("data:image/jpeg;base64,")) return [];
+  return [
+    {
+      inlineData: {
+        mimeType: "image/jpeg",
+        data: image.slice("data:image/jpeg;base64,".length),
+      },
+    },
+  ];
+}
+
+function playerRefLines(input: AiReviewInput): string[] {
+  if (!input.playerRef?.image) return [];
+  const point = input.playerRef.point?.split(",").map(Number);
+  const at =
+    point && point.length === 2 && Number.isFinite(point[0])
+      ? ` They tapped their own position at approximately ${Math.round(point[0] * 100)}% from the left and ${Math.round(point[1] * 100)}% from the top of the frame at the video's start.`
+      : "";
+  return [
+    "",
+    "REFERENCE PHOTO — the image attached before this prompt is THE TARGET",
+    "PLAYER, cropped from this same video's opening frame by the player",
+    `themselves.${at} This photo is the definitive identity: match the person`,
+    "in it — face, build, hair, clothing — and track THAT person for the",
+    "entire video. If the written description and the photo ever seem to",
+    "disagree, THE PHOTO WINS.",
+  ];
+}
 
 const MIME_BY_EXT: Record<string, string> = {
   ".mp4": "video/mp4",
@@ -540,7 +581,7 @@ async function identifyTargetPlayer(
   file: { uri: string; mimeType: string },
   input: AiReviewInput
 ): Promise<string | null> {
-  if (!input.playerOutfit) return null;
+  if (!input.playerOutfit && !input.playerRef?.image) return null;
   const where = input.playerSide
     ? ` At the start of the video they are positioned: ${input.playerSide} (as seen on screen from the camera).`
     : "";
@@ -548,13 +589,16 @@ async function identifyTargetPlayer(
     "You are identifying ONE padel player in this video so a coach analyses",
     "the right person. Accuracy matters more than speed.",
     "",
-    `TARGET DESCRIPTION: wearing ${input.playerOutfit}.${where}`,
+    `TARGET DESCRIPTION: wearing ${input.playerOutfit ?? "(no description provided)"}.${where}`,
+    ...playerRefLines(input),
     "",
     "Watch the clip carefully, then:",
     "1. List EVERY player you can see — their position on screen (near/far",
     "   side of the net, left/right half of the screen) and their FULL outfit:",
     "   shirt colour AND shorts colour, plus any cap, hair or shoe details.",
-    "2. Decide which single player matches the FULL target description —",
+    "2. Decide which single player is the target. If a reference photo is",
+    "   attached, the target is the person IN THE PHOTO — find them among the",
+    "   players you listed. Otherwise match the FULL written description:",
     "   shirt AND shorts AND starting position must all fit together. Beware",
     "   inverted outfits (another player wearing the same colours swapped is",
     "   NOT the target). Being closer to the camera, larger in frame, or more",
@@ -581,7 +625,9 @@ async function identifyTargetPlayer(
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
-        contents: [{ parts: [videoPart, { text: prompt }] }],
+        contents: [
+          { parts: [...playerRefParts(input), videoPart, { text: prompt }] },
+        ],
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: IDENTIFY_SCHEMA,
@@ -638,6 +684,7 @@ function buildReviewPrompt(
     `The player titled the video: "${input.title}".`,
   ];
   lines.push(...whoToAnalyseLines(input, confirmedIdentification));
+  lines.push(...playerRefLines(input));
   if (input.notes) {
     lines.push(`The player's notes to the coach: "${input.notes}".`);
   }
@@ -903,6 +950,7 @@ export async function generateAiReview(
         contents: [
           {
             parts: [
+              ...playerRefParts(input),
               { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
               { text: buildReviewPrompt(input, confirmedId) },
             ],
@@ -1005,6 +1053,7 @@ function buildPrescanPrompt(
     `The player titled the video: "${input.title}".`,
   ];
   lines.push(...whoToAnalyseLines(input, confirmedIdentification));
+  lines.push(...playerRefLines(input));
   if (input.notes) {
     lines.push(`The player's notes to the coach: "${input.notes}".`);
   }
@@ -1084,6 +1133,7 @@ export async function generateAiPrescan(
         contents: [
           {
             parts: [
+              ...playerRefParts(input),
               { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
               { text: buildPrescanPrompt(input, confirmedId) },
             ],

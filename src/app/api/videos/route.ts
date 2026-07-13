@@ -34,9 +34,36 @@ const blobBodySchema = z.object({
     .string()
     .refine((v) => (PLAYER_SIDE_KEYS as string[]).includes(v))
     .optional(),
+  playerRefPoint: z.string().max(20).optional(),
+  playerRefImage: z.string().max(400_000).optional(),
   videoUrl: z.string().url(),
   focusShots: z.array(z.string()).max(12).optional(),
 });
+
+/**
+ * Validate the tap-to-identify reference: a normalised "x,y" point and a
+ * small JPEG data URL cropped from the opening frame. Both invalid → nulls
+ * (the reference is an enhancement, never a reason to reject an upload).
+ */
+function cleanPlayerRef(
+  point: string | undefined | null,
+  image: string | undefined | null
+): { point: string | null; image: string | null } {
+  let cleanPoint: string | null = null;
+  if (point) {
+    const [x, y] = String(point).split(",").map(Number);
+    if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+      cleanPoint = `${Math.round(x * 1000) / 1000},${Math.round(y * 1000) / 1000}`;
+    }
+  }
+  const cleanImage =
+    image &&
+    /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image) &&
+    image.length <= 400_000
+      ? image
+      : null;
+  return { point: cleanPoint, image: cleanImage };
+}
 
 /** Keep only known shot keys, comma-joined for storage. */
 function cleanShots(shots: string[] | undefined | null): string | null {
@@ -77,6 +104,7 @@ async function createFromBlob(req: Request, session: SessionUser) {
   return createSubmission(session, coachId, title, notes ?? "", videoUrl, focusShots, {
     outfit: parsed.data.playerOutfit,
     side: parsed.data.playerSide ?? null,
+    ref: cleanPlayerRef(parsed.data.playerRefPoint, parsed.data.playerRefImage),
   });
 }
 
@@ -125,6 +153,10 @@ async function createFromMultipart(req: Request, session: SessionUser) {
   return createSubmission(session, coachId, title, notes, filename, focusShots, {
     outfit: playerOutfit,
     side: playerSide,
+    ref: cleanPlayerRef(
+      form.get("playerRefPoint") ? String(form.get("playerRefPoint")) : null,
+      form.get("playerRefImage") ? String(form.get("playerRefImage")) : null
+    ),
   });
 }
 
@@ -135,7 +167,11 @@ async function createSubmission(
   notes: string,
   videoPath: string,
   focusShots: string | null,
-  identity: { outfit: string; side: string | null }
+  identity: {
+    outfit: string;
+    side: string | null;
+    ref: { point: string | null; image: string | null };
+  }
 ) {
   const coach = await db.user.findUnique({
     where: { id: coachId },
@@ -172,6 +208,8 @@ async function createSubmission(
       notes: notes || null,
       playerOutfit: redactContact(identity.outfit),
       playerSide: identity.side,
+      playerRefPoint: identity.ref.point,
+      playerRefImage: identity.ref.image,
       focusShots,
       videoPath,
       status: SubmissionStatus.AWAITING_FEEDBACK,
