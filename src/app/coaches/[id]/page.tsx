@@ -52,11 +52,15 @@ export default async function CoachDetailPage({
     }),
   ]);
 
+  const isAi = profile.isAi;
+
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Person",
+    // The AI coach is a service, not a person.
+    ...(isAi
+      ? { "@type": "Service", serviceType: "AI padel video analysis" }
+      : { "@type": "Person", jobTitle: "Padel coach" }),
     name: coach.name,
-    jobTitle: "Padel coach",
     description: profile.headline,
     ...(profile.photoUrl ? { image: profile.photoUrl } : {}),
     ...(profile.location ? { homeLocation: profile.location } : {}),
@@ -95,7 +99,14 @@ export default async function CoachDetailPage({
       />
       <div>
         <div className="flex items-center gap-5">
-          {profile.photoUrl ? (
+          {isAi ? (
+            <div
+              aria-hidden
+              className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-court-700 to-ball-500 text-4xl text-white"
+            >
+              ✦
+            </div>
+          ) : profile.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.photoUrl}
@@ -108,15 +119,28 @@ export default async function CoachDetailPage({
             </div>
           )}
           <div>
-            <h1 className="text-3xl font-bold">{coach.name}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-3xl font-bold">{coach.name}</h1>
+              {isAi && (
+                <span className="badge bg-ball-500/20 text-ball-600">
+                  Instant AI review
+                </span>
+              )}
+            </div>
             <p className="text-slate-600">
-              {profile.location || "Online coaching"}
-              {profile.experienceYears > 0 &&
-                ` · ${profile.experienceYears} years of experience`}
+              {isAi
+                ? "Automated video analysis · Always available"
+                : `${profile.location || "Online coaching"}${
+                    profile.experienceYears > 0
+                      ? ` · ${profile.experienceYears} years of experience`
+                      : ""
+                  }`}
             </p>
             <div className="stat mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               <span className="font-semibold text-court-800">
-                Replies in {turnaroundLabel(profile.turnaroundHours)}
+                {isAi
+                  ? "Feedback in minutes"
+                  : `Replies in ${turnaroundLabel(profile.turnaroundHours)}`}
               </span>
               {ratingAgg._count.rating > 0 && (
                 <span className="text-slate-600">
@@ -154,7 +178,7 @@ export default async function CoachDetailPage({
 
         {(profile.certifications || profile.careerHighlights || profile.languages) && (
           <div className="card mt-8">
-            <h3 className="font-semibold">Credentials</h3>
+            <h3 className="font-semibold">{isAi ? "What's included" : "Credentials"}</h3>
             <dl className="mt-3 space-y-4 text-sm">
               {profile.certifications && (
                 <div>
@@ -170,7 +194,9 @@ export default async function CoachDetailPage({
               )}
               {profile.careerHighlights && (
                 <div>
-                  <dt className="eyebrow text-court-600">Career highlights</dt>
+                  <dt className="eyebrow text-court-600">
+                    {isAi ? "Every review" : "Career highlights"}
+                  </dt>
                   <dd className="mt-1">
                     <ul className="list-inside list-disc space-y-0.5 text-slate-600">
                       {profile.careerHighlights.split("\n").filter(Boolean).map((c) => (
@@ -211,14 +237,22 @@ export default async function CoachDetailPage({
         )}
 
         <div className="card mt-8">
-          <h3 className="font-semibold">How coaching works</h3>
+          <h3 className="font-semibold">How {isAi ? "it" : "coaching"} works</h3>
           <ol className="mt-3 list-inside list-decimal space-y-1 text-sm text-slate-600">
             <li>Purchase a one-off review or a monthly plan on the right.</li>
             <li>Upload a video of your match or training from your dashboard.</li>
-            <li>
-              {coach.name.split(" ")[0]} analyses your game and sends you written
-              feedback, usually within a few days.
-            </li>
+            {isAi ? (
+              <li>
+                The AI coach watches your full video and your written feedback —
+                including notes pinned to moments in your footage — appears
+                within minutes.
+              </li>
+            ) : (
+              <li>
+                {coach.name.split(" ")[0]} analyses your game and sends you
+                written feedback, usually within a few days.
+              </li>
+            )}
           </ol>
         </div>
       </div>

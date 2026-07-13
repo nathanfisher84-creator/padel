@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { stripeEnabled, platformFeePercent } from "@/lib/config";
+import { stripeEnabled, platformFeePercent, demoPaymentsAllowed } from "@/lib/config";
 import { photoStandardizationEnabled } from "@/lib/imageStandardize";
+import { aiReviewEnabled } from "@/lib/aiCoach";
 import {
   blobUploadsEnabled,
   blobAuthMode,
@@ -53,6 +54,11 @@ export async function GET(req: Request) {
       authSecretSet: Boolean(process.env.AUTH_SECRET),
       payments: stripeEnabled() ? "stripe" : "demo",
       photoStandardization: photoStandardizationEnabled() ? "gemini" : "off",
+      aiCoach: aiReviewEnabled()
+        ? "gemini"
+        : demoPaymentsAllowed()
+          ? "demo"
+          : "off",
       platformFeePercent: platformFeePercent(),
       counts: { users, coaches, payments },
     });

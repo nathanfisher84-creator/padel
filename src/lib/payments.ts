@@ -7,6 +7,22 @@ import {
 } from "@/lib/constants";
 
 /**
+ * Compute the revenue split for a coach. The platform's AI coach has no
+ * human to pay out, so the platform keeps 100%; everyone else gets the
+ * standard PLATFORM_FEE_PERCENT split.
+ */
+async function splitFor(coachId: string, amountCents: number) {
+  const profile = await db.coachProfile.findUnique({
+    where: { userId: coachId },
+    select: { isAi: true },
+  });
+  if (profile?.isAi) {
+    return { platformFeeCents: amountCents, coachCents: 0 };
+  }
+  return splitRevenue(amountCents);
+}
+
+/**
  * Record a successful one-off review purchase. Creates a PAID payment row
  * carrying the platform/coach revenue split; the payment acts as one video
  * review credit until a submission is attached to it.
@@ -26,7 +42,10 @@ export async function recordOneOffPayment(opts: {
     });
     if (existing) return existing;
   }
-  const { platformFeeCents, coachCents } = splitRevenue(opts.amountCents);
+  const { platformFeeCents, coachCents } = await splitFor(
+    opts.coachId,
+    opts.amountCents
+  );
   return db.payment.create({
     data: {
       playerId: opts.playerId,
@@ -68,7 +87,10 @@ export async function recordSubscriptionPayment(opts: {
       });
     }
   }
-  const { platformFeeCents, coachCents } = splitRevenue(opts.amountCents);
+  const { platformFeeCents, coachCents } = await splitFor(
+    opts.coachId,
+    opts.amountCents
+  );
   const periodEnd = new Date();
   periodEnd.setMonth(periodEnd.getMonth() + 1);
 

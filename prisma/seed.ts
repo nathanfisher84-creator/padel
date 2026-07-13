@@ -7,6 +7,7 @@
 // if those are set — no default-credential accounts are ever created.
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const db = new PrismaClient();
 
@@ -38,6 +39,44 @@ async function main() {
     });
     console.log(`Ensured admin account for ${adminEmail}.`);
   }
+
+  // The platform's built-in AI coach — a product feature, not demo data, so
+  // it exists in every environment. Nobody logs in as it (random password);
+  // players buy the cheap instant tier, upload, and the AI review is
+  // generated automatically. The platform keeps 100% of its payments.
+  const aiProfile = {
+    isAi: true,
+    isPublished: true,
+    headline: "Instant AI video analysis — feedback in minutes, not days",
+    bestFor: "a fast, affordable first analysis of your game",
+    bio: "The PadelPro AI Coach watches your full video with a frontier vision model and sends back structured feedback in minutes: what you're doing well, the three highest-impact fixes, drills for your next session, and timestamped notes pinned to the exact moments in your footage.\n\nIt's the fastest and cheapest way to get a read on your game — and if you want a deeper, human eye afterwards, our professional coaches are one click away.",
+    location: null as string | null,
+    experienceYears: 0,
+    photoUrl: null as string | null,
+    turnaroundHours: 24, // displayed as "Instant" in the UI
+    languages: "English",
+    certifications: null as string | null,
+    careerHighlights:
+      "Watches your entire video, frame by frame\nTimestamped notes pinned to key moments\nDelivers in minutes, around the clock",
+    oneOffPriceCents: 700,
+    monthlyPriceCents: 1900,
+    monthlyVideoLimit: 8,
+    currency: "EUR",
+  };
+  await db.user.upsert({
+    where: { email: "ai@padelpro.local" },
+    // Keep the AI coach's profile in sync with the canonical copy on re-seed.
+    update: { coachProfile: { upsert: { update: aiProfile, create: aiProfile } } },
+    create: {
+      email: "ai@padelpro.local",
+      name: "PadelPro AI Coach",
+      // Not a login-able account; the password is random and thrown away.
+      passwordHash: await bcrypt.hash(crypto.randomBytes(32).toString("hex"), 10),
+      role: "COACH",
+      coachProfile: { create: aiProfile },
+    },
+  });
+  console.log("Ensured the PadelPro AI Coach account.");
 
   const runDemo = seedDemo || PREVIEW_DEMO;
   if (!runDemo) {

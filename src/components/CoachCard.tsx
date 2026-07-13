@@ -20,6 +20,7 @@ export type PublicCoach = {
   monthlyPriceCents: number;
   currency: string;
   turnaroundHours: number;
+  isAi: boolean;
   user: { name: string };
   avgRating: number | null;
   reviewCount: number;
@@ -33,7 +34,14 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
     >
       <div className="flex-1 p-6">
         <div className="flex items-center gap-4">
-          {profile.photoUrl ? (
+          {profile.isAi ? (
+            <div
+              aria-hidden
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-court-700 to-ball-500 text-2xl text-white"
+            >
+              ✦
+            </div>
+          ) : profile.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.photoUrl}
@@ -54,9 +62,13 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
               {profile.user.name}
             </h3>
             <p className="stat truncate text-xs uppercase tracking-wide text-slate-600">
-              {profile.location || "Online coaching"}
-              {profile.experienceYears > 0 &&
-                ` · ${profile.experienceYears} yrs`}
+              {profile.isAi
+                ? "Instant AI analysis · Always available"
+                : `${profile.location || "Online coaching"}${
+                    profile.experienceYears > 0
+                      ? ` · ${profile.experienceYears} yrs`
+                      : ""
+                  }`}
             </p>
           </div>
         </div>
@@ -70,7 +82,9 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
         )}
         <div className="stat mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="font-semibold text-court-800">
-            Replies in {turnaroundLabel(profile.turnaroundHours)}
+            {profile.isAi
+              ? "Feedback in minutes"
+              : `Replies in ${turnaroundLabel(profile.turnaroundHours)}`}
           </span>
           {profile.avgRating !== null ? (
             <span className="text-slate-600">

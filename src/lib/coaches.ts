@@ -22,9 +22,12 @@ export async function getPublicCoaches(take?: number): Promise<PublicCoach[]> {
         monthlyPriceCents: true,
         currency: true,
         turnaroundHours: true,
+        isAi: true,
         user: { select: { name: true } },
       },
-      orderBy: { createdAt: "asc" },
+      // Humans first: the homepage's featured roster (take 3) should always
+      // be real coaches; the AI tier is surfaced separately in the directory.
+      orderBy: [{ isAi: "asc" as const }, { createdAt: "asc" as const }],
       ...(take ? { take } : {}),
     }),
     db.review.groupBy({
