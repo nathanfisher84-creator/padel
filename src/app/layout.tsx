@@ -26,13 +26,13 @@ const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "PadelPro Coaching",
-  url: process.env.APP_URL ?? "https://padelprocoaches.com",
+  url: process.env.APP_URL ?? "https://www.padelprocoaches.com",
   description:
     "A marketplace connecting padel players with professional coaches for personal video analysis.",
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL ?? "https://padelprocoaches.com"),
+  metadataBase: new URL(process.env.APP_URL ?? "https://www.padelprocoaches.com"),
   title: {
     default: "PadelPro Coaching — video analysis by top padel coaches",
     template: "%s · PadelPro Coaching",
