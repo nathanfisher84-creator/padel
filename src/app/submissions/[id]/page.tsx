@@ -7,6 +7,7 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { RatingForm } from "@/components/RatingForm";
 import { AnalysisPlayer } from "@/components/AnalysisPlayer";
 import { AiReviewRunner } from "@/components/AiReviewRunner";
+import { CoachPrescan } from "@/components/CoachPrescan";
 import { blobUploadsEnabled, VIDEO_RETENTION_DAYS } from "@/lib/storage";
 import { FOCUS_SHOTS, playerSideLabel } from "@/lib/constants";
 
@@ -101,6 +102,12 @@ export default async function SubmissionPage({
             editable={canAnnotate}
             initialComments={showComments ? submission.comments : []}
           />
+          {canAnnotate && (
+            <CoachPrescan
+              submissionId={submission.id}
+              initial={submission.aiPrescan}
+            />
+          )}
           {submission.feedback && (
             <p className="!mt-2 text-xs text-slate-500">
               This video file will be removed on{" "}
