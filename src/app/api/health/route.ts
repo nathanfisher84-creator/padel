@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { stripeEnabled, platformFeePercent, demoPaymentsAllowed } from "@/lib/config";
 import { photoStandardizationEnabled } from "@/lib/imageStandardize";
 import { aiReviewEnabled } from "@/lib/aiCoach";
+import { emailEnabled } from "@/lib/email";
 import {
   blobUploadsEnabled,
   blobAuthMode,
@@ -59,6 +60,7 @@ export async function GET(req: Request) {
         : demoPaymentsAllowed()
           ? "demo"
           : "off",
+      email: emailEnabled() ? "resend" : "off",
       platformFeePercent: platformFeePercent(),
       counts: { users, coaches, payments },
     });

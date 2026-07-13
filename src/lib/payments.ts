@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { splitRevenue } from "@/lib/config";
+import { notifyOwnerSale } from "@/lib/email";
 import {
   PaymentKind,
   PaymentStatus,
@@ -16,10 +17,38 @@ async function splitFor(coachId: string, amountCents: number) {
     where: { userId: coachId },
     select: { isAi: true },
   });
-  if (profile?.isAi) {
-    return { platformFeeCents: amountCents, coachCents: 0 };
+  const isAi = Boolean(profile?.isAi);
+  if (isAi) {
+    return { platformFeeCents: amountCents, coachCents: 0, isAi };
   }
-  return splitRevenue(amountCents);
+  return { ...splitRevenue(amountCents), isAi };
+}
+
+/** Owner sale alert (best-effort — a lost email must not lose a payment). */
+async function alertOwner(opts: {
+  playerId: string;
+  coachId: string;
+  isAiCoach: boolean;
+  kind: "one_off" | "subscription";
+  amountCents: number;
+  platformFeeCents: number;
+  currency: string;
+}) {
+  const users = await db.user.findMany({
+    where: { id: { in: [opts.playerId, opts.coachId] } },
+    select: { id: true, name: true },
+  });
+  const nameOf = (id: string) =>
+    users.find((u) => u.id === id)?.name ?? "Unknown";
+  await notifyOwnerSale({
+    playerName: nameOf(opts.playerId),
+    coachName: nameOf(opts.coachId),
+    isAiCoach: opts.isAiCoach,
+    kind: opts.kind,
+    amountCents: opts.amountCents,
+    platformFeeCents: opts.platformFeeCents,
+    currency: opts.currency,
+  });
 }
 
 /**
@@ -42,11 +71,11 @@ export async function recordOneOffPayment(opts: {
     });
     if (existing) return existing;
   }
-  const { platformFeeCents, coachCents } = await splitFor(
+  const { platformFeeCents, coachCents, isAi } = await splitFor(
     opts.coachId,
     opts.amountCents
   );
-  return db.payment.create({
+  const payment = await db.payment.create({
     data: {
       playerId: opts.playerId,
       coachId: opts.coachId,
@@ -59,6 +88,16 @@ export async function recordOneOffPayment(opts: {
       stripeRef: opts.stripeRef,
     },
   });
+  await alertOwner({
+    playerId: opts.playerId,
+    coachId: opts.coachId,
+    isAiCoach: isAi,
+    kind: "one_off",
+    amountCents: opts.amountCents,
+    platformFeeCents,
+    currency: opts.currency,
+  });
+  return payment;
 }
 
 /**
@@ -87,7 +126,7 @@ export async function recordSubscriptionPayment(opts: {
       });
     }
   }
-  const { platformFeeCents, coachCents } = await splitFor(
+  const { platformFeeCents, coachCents, isAi } = await splitFor(
     opts.coachId,
     opts.amountCents
   );
@@ -125,6 +164,16 @@ export async function recordSubscriptionPayment(opts: {
       stripeRef: opts.stripeRef,
       subscriptionId: subscription.id,
     },
+  });
+
+  await alertOwner({
+    playerId: opts.playerId,
+    coachId: opts.coachId,
+    isAiCoach: isAi,
+    kind: "subscription",
+    amountCents: opts.amountCents,
+    platformFeeCents,
+    currency: opts.currency,
   });
 
   return subscription;

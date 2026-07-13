@@ -12,6 +12,7 @@ import {
   MAX_VIDEO_BYTES,
   VIDEO_CONTENT_TYPES,
 } from "@/lib/storage";
+import { notifyCoachNewSubmission, notifyOwnerAiUpload } from "@/lib/email";
 
 function uploadDir(): string {
   return process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads");
@@ -138,6 +139,29 @@ async function createSubmission(
       paymentId: entitlement.source === "credit" ? entitlement.paymentId : null,
     },
   });
+
+  // Notify (best-effort, never fails the upload): a human coach gets the
+  // new-video email; an AI submission alerts the owner instead — the AI
+  // review itself is kicked off by the player's submission page.
+  const coach = await db.user.findUnique({
+    where: { id: coachId },
+    select: { email: true, name: true, coachProfile: { select: { isAi: true } } },
+  });
+  if (coach?.coachProfile?.isAi) {
+    await notifyOwnerAiUpload({
+      playerName: session.name,
+      title,
+      submissionId: submission.id,
+    });
+  } else if (coach) {
+    await notifyCoachNewSubmission({
+      coachEmail: coach.email,
+      coachName: coach.name,
+      playerName: session.name,
+      title,
+      submissionId: submission.id,
+    });
+  }
 
   return NextResponse.json({ ok: true, id: submission.id });
 }

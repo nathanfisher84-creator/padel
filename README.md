@@ -79,7 +79,9 @@ See [`.env.example`](.env.example) for the full list:
 | `STRIPE_SECRET_KEY` | Enables real Stripe Checkout (optional) |
 | `STRIPE_WEBHOOK_SECRET` | Signing secret for `/api/stripe/webhook` |
 | `UPLOAD_DIR` | Where uploaded videos are stored (default `./uploads`) |
-| `GEMINI_API_KEY` | Enables AI-standardized coach profile photos (optional) |
+| `GEMINI_API_KEY` | Enables the AI Coach video reviews and AI-standardized coach photos (optional) |
+| `RESEND_API_KEY` | Enables email notifications via Resend (optional) |
+| `OWNER_NOTIFY_EMAIL` | Where owner sale/AI-upload alerts go (falls back to `ADMIN_EMAIL`) |
 
 ## Deploying to Vercel
 
@@ -148,6 +150,22 @@ actions for the owner:
 > connected account and pay their share out on a schedule. Until then, coach
 > balances are visible in the coach dashboard and admin ledger for manual
 > payouts.
+
+## Email notifications
+
+With `RESEND_API_KEY` set (get one free at [resend.com](https://resend.com)),
+the app sends transactional email at the three moments that matter:
+
+- **Coach**: a player uploaded a video for review (with a direct link).
+- **Player**: their feedback was delivered — by a human coach or the AI coach.
+- **Owner**: every sale (amount + platform share) and every AI coach upload,
+  sent to `OWNER_NOTIFY_EMAIL` (or `ADMIN_EMAIL` if unset).
+
+Sending is best-effort: a failed email never blocks an upload, a review or a
+payment. Without a key the feature is off and everything else works normally.
+Until you verify a sending domain in Resend, leave `EMAIL_FROM` unset — the
+default test sender delivers to your own Resend account address, which is
+enough to try it. `GET /api/health` reports `email` (`resend` or `off`).
 
 ## The AI Coach (instant video reviews)
 

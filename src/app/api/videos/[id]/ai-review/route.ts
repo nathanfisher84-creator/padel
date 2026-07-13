@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { demoPaymentsAllowed } from "@/lib/config";
 import { Role, SubmissionStatus, FOCUS_SHOTS } from "@/lib/constants";
 import { redactContact } from "@/lib/redact";
+import { notifyPlayerFeedbackDelivered } from "@/lib/email";
 import {
   aiReviewEnabled,
   generateAiReview,
@@ -42,6 +43,7 @@ export async function POST(
     include: {
       feedback: true,
       coach: { include: { coachProfile: { select: { isAi: true } } } },
+      player: { select: { email: true, name: true } },
     },
   });
   if (
@@ -133,6 +135,17 @@ export async function POST(
     }
     throw err;
   }
+
+  // Best-effort; the review is already delivered. The player is usually
+  // still on the page watching it arrive — the email covers those who left.
+  await notifyPlayerFeedbackDelivered({
+    playerEmail: submission.player.email,
+    playerName: submission.player.name,
+    coachName: submission.coach.name,
+    title: submission.title,
+    submissionId: submission.id,
+    isAi: true,
+  });
 
   return NextResponse.json({ ok: true });
 }

@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { Role, SubmissionStatus } from "@/lib/constants";
 import { redactContact } from "@/lib/redact";
+import { notifyPlayerFeedbackDelivered } from "@/lib/email";
 import {
   blobUploadsEnabled,
   isVercelBlobUrl,
@@ -88,7 +89,7 @@ export async function POST(
 
   const submission = await db.videoSubmission.findUnique({
     where: { id: params.id },
-    include: { feedback: true },
+    include: { feedback: true, player: { select: { email: true, name: true } } },
   });
   if (!submission || submission.coachId !== session.id) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -122,6 +123,16 @@ export async function POST(
       data: { status: SubmissionStatus.REVIEWED },
     }),
   ]);
+
+  // Best-effort; the feedback is already saved.
+  await notifyPlayerFeedbackDelivered({
+    playerEmail: submission.player.email,
+    playerName: submission.player.name,
+    coachName: session.name,
+    title: submission.title,
+    submissionId: submission.id,
+    isAi: false,
+  });
 
   return NextResponse.json({ ok: true });
 }
