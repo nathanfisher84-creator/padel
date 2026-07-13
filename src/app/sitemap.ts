@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.APP_URL ?? "https://padelprocoaches.com";
+  const base = process.env.APP_URL ?? "https://www.padelprocoaches.com";
   const coaches = await db.coachProfile.findMany({
     where: { isPublished: true },
     select: { userId: true, updatedAt: true },
