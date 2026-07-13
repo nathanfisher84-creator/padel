@@ -64,6 +64,11 @@ export const VIDEO_CONTENT_TYPES = [
 // at or below ~1 GB unless that path is converted to streaming.
 export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024;
 
+// How long a raw video file is kept after its review is delivered before the
+// retention cron deletes it. Referenced by the cron, the upload form, the
+// submission page and the privacy policy — change it here only.
+export const VIDEO_RETENTION_DAYS = 30;
+
 // Coach profile media
 export const IMAGE_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB

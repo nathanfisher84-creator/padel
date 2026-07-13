@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import { FOCUS_SHOTS } from "@/lib/constants";
+import { VIDEO_RETENTION_DAYS } from "@/lib/storage";
 
 export function UploadForm({
   coaches,
@@ -137,6 +138,12 @@ export function UploadForm({
           accept="video/mp4,video/quicktime,video/webm,video/x-msvideo"
           required
         />
+        <p className="mt-2 text-xs text-slate-500">
+          Heads up: the video file is deleted {VIDEO_RETENTION_DAYS} days after
+          your feedback is delivered. Your written feedback and timestamped
+          notes are kept forever — keep your own copy of the footage if you
+          want it long-term.
+        </p>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button className="btn-primary w-full" disabled={busy}>

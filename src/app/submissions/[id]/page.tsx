@@ -7,7 +7,7 @@ import { FeedbackForm } from "@/components/FeedbackForm";
 import { RatingForm } from "@/components/RatingForm";
 import { AnalysisPlayer } from "@/components/AnalysisPlayer";
 import { AiReviewRunner } from "@/components/AiReviewRunner";
-import { blobUploadsEnabled } from "@/lib/storage";
+import { blobUploadsEnabled, VIDEO_RETENTION_DAYS } from "@/lib/storage";
 import { FOCUS_SHOTS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -94,12 +94,27 @@ export default async function SubmissionPage({
           )}
         </div>
       ) : (
-        <AnalysisPlayer
-          src={`/api/videos/${submission.id}/stream`}
-          submissionId={submission.id}
-          editable={canAnnotate}
-          initialComments={showComments ? submission.comments : []}
-        />
+        <>
+          <AnalysisPlayer
+            src={`/api/videos/${submission.id}/stream`}
+            submissionId={submission.id}
+            editable={canAnnotate}
+            initialComments={showComments ? submission.comments : []}
+          />
+          {submission.feedback && (
+            <p className="!mt-2 text-xs text-slate-500">
+              This video file will be removed on{" "}
+              {formatDate(
+                new Date(
+                  new Date(submission.feedback.createdAt).getTime() +
+                    VIDEO_RETENTION_DAYS * 24 * 60 * 60 * 1000
+                )
+              )}{" "}
+              ({VIDEO_RETENTION_DAYS} days after your feedback was delivered).
+              The written feedback and timestamped notes stay forever.
+            </p>
+          )}
+        </>
       )}
 
       {submission.focusShots && (
