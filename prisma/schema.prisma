@@ -113,6 +113,9 @@ model VideoSubmission {
   // after the review was delivered). Feedback and timestamped notes remain.
   videoPurgedAt DateTime?
   status     String // AWAITING_FEEDBACK | REVIEWED
+  // Reminder ladder for the coach's committed turnaround: 0 = none sent,
+  // 1 = approaching-deadline nudge sent, 2 = overdue notice sent.
+  reminderStage Int @default(0)
   // Set when the submission consumed a one-off review credit.
   paymentId  String?  @unique
   payment    Payment? @relation(fields: [paymentId], references: [id])

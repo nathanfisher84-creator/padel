@@ -5,12 +5,14 @@ import { ApproveCoachButton } from "@/components/ApproveCoachButton";
 import { ViewAsButton } from "@/components/ViewAsButton";
 import { getSession } from "@/lib/auth";
 import { getEntitlements } from "@/lib/entitlements";
+import { deadlineInfo } from "@/lib/deadlines";
 import { formatDate, formatMoney } from "@/lib/format";
 import {
   PaymentStatus,
   Role,
   SubmissionStatus,
   SubscriptionStatus,
+  turnaroundLabel,
 } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
@@ -206,6 +208,7 @@ async function CoachDashboard({ userId }: { userId: string }) {
 
   const profile = await db.coachProfile.findUnique({ where: { userId } });
   const currency = profile?.currency ?? "AED";
+  const turnaround = profile?.turnaroundHours ?? 72;
 
   return (
     <div className="space-y-10">
@@ -264,7 +267,12 @@ async function CoachDashboard({ userId }: { userId: string }) {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold">Review queue</h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-xl font-semibold">Review queue</h2>
+          <p className="text-xs text-slate-500">
+            Your committed response time: {turnaroundLabel(turnaround)}
+          </p>
+        </div>
         {queue.length === 0 ? (
           <div className="card mt-4 text-sm text-slate-600">
             All caught up — no videos waiting for feedback. 🏆
@@ -283,7 +291,25 @@ async function CoachDashboard({ userId }: { userId: string }) {
                     From {s.player.name} · {formatDate(s.createdAt)}
                   </p>
                 </div>
-                <span className="btn-primary !px-4 !py-2 text-sm">Review now</span>
+                <div className="flex shrink-0 items-center gap-3">
+                  {(() => {
+                    const d = deadlineInfo(s.createdAt, turnaround);
+                    return (
+                      <span
+                        className={`badge ${
+                          d.state === "overdue"
+                            ? "bg-red-100 text-red-700"
+                            : d.state === "soon"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-court-100 text-court-800"
+                        }`}
+                      >
+                        {d.label}
+                      </span>
+                    );
+                  })()}
+                  <span className="btn-primary !px-4 !py-2 text-sm">Review now</span>
+                </div>
               </Link>
             ))}
           </div>
@@ -331,11 +357,28 @@ async function AdminDashboard() {
           _count: 0,
         },
       ];
-  const [coachCount, playerCount, submissionCount] = await Promise.all([
+  const [coachCount, playerCount, submissionCount, waiting] = await Promise.all([
     db.coachProfile.count(),
     db.user.count({ where: { role: Role.PLAYER } }),
     db.videoSubmission.count(),
+    // Open human-coach reviews, to compute how many are past the coach's
+    // committed turnaround (per-coach windows, so filtered in JS).
+    db.videoSubmission.findMany({
+      where: {
+        status: SubmissionStatus.AWAITING_FEEDBACK,
+        coach: { coachProfile: { is: { isAi: false } } },
+      },
+      select: {
+        createdAt: true,
+        coach: { select: { coachProfile: { select: { turnaroundHours: true } } } },
+      },
+    }),
   ]);
+  const overdueCount = waiting.filter(
+    (s) =>
+      deadlineInfo(s.createdAt, s.coach.coachProfile?.turnaroundHours ?? 72)
+        .state === "overdue"
+  ).length;
   const recent = await db.payment.findMany({
     where: { status: PaymentStatus.PAID },
     include: { coach: true, player: true },
@@ -460,11 +503,12 @@ async function AdminDashboard() {
           ))}
         </section>
       ))}
-      <section className="grid gap-4 sm:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-4">
         {[
           ["Coaches", coachCount],
           ["Players", playerCount],
           ["Video submissions", submissionCount],
+          ["Overdue reviews", overdueCount],
         ].map(([label, value]) => (
           <div key={label} className="card">
             <p className="text-sm text-slate-600">{label}</p>

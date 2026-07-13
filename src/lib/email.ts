@@ -15,6 +15,8 @@
  */
 
 import { appUrl } from "@/lib/config";
+import { turnaroundLabel } from "@/lib/constants";
+import { formatDueAt } from "@/lib/deadlines";
 import { formatMoney } from "@/lib/format";
 
 export function emailEnabled(): boolean {
@@ -72,7 +74,17 @@ export async function notifyCoachNewSubmission(opts: {
   playerName: string;
   title: string;
   submissionId: string;
+  /** The coach's committed response time; adds a due-by line when present. */
+  turnaroundHours?: number;
+  dueAt?: Date;
 }): Promise<void> {
+  const deadlineLine =
+    opts.turnaroundHours && opts.dueAt
+      ? [
+          `Your committed response time is ${turnaroundLabel(opts.turnaroundHours)} — feedback is due by ${formatDueAt(opts.dueAt)} (Dubai time).`,
+          "",
+        ]
+      : [];
   await sendEmail({
     to: opts.coachEmail,
     subject: `New video to review: "${opts.title}"`,
@@ -81,8 +93,48 @@ export async function notifyCoachNewSubmission(opts: {
       "",
       `${opts.playerName} just uploaded a video for your review: "${opts.title}".`,
       "",
+      ...deadlineLine,
       `Watch it and send your feedback here:`,
       `${appUrl()}/submissions/${opts.submissionId}`,
+      "",
+      "— PadelPro Coaching",
+    ].join("\n"),
+  });
+}
+
+/**
+ * Turnaround nudges: "due soon" when ~75% of the coach's committed window has
+ * elapsed, "overdue" once the deadline has passed. Sent at most once each by
+ * the review-reminders cron (tracked via VideoSubmission.reminderStage).
+ */
+export async function notifyCoachReviewReminder(opts: {
+  coachEmail: string;
+  coachName: string;
+  playerName: string;
+  title: string;
+  submissionId: string;
+  kind: "due-soon" | "overdue";
+  dueAt: Date;
+  hoursLeft: number;
+}): Promise<void> {
+  const first = opts.coachName.split(" ")[0];
+  const link = `${appUrl()}/submissions/${opts.submissionId}`;
+  const due = `${formatDueAt(opts.dueAt)} (Dubai time)`;
+  const isOverdue = opts.kind === "overdue";
+  await sendEmail({
+    to: opts.coachEmail,
+    subject: isOverdue
+      ? `Overdue: feedback for "${opts.title}"`
+      : `Reminder: "${opts.title}" is due soon`,
+    text: [
+      `Hi ${first},`,
+      "",
+      isOverdue
+        ? `${opts.playerName}'s video "${opts.title}" is now past your committed response time (it was due by ${due}). Players rate coaches on reliability — please send your feedback as soon as you can.`
+        : `${opts.playerName}'s video "${opts.title}" is due by ${due} — about ${Math.max(1, Math.round(opts.hoursLeft))}h from now.`,
+      "",
+      `Review it here:`,
+      link,
       "",
       "— PadelPro Coaching",
     ].join("\n"),
