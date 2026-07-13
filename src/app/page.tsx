@@ -18,7 +18,7 @@ const STEPS = [
   {
     step: "02",
     title: "Upload your match",
-    text: "Film on any phone and upload straight from the browser — full matches or drills, up to 500 MB. Tell your coach what to focus on.",
+    text: "Film on any phone and upload straight from the browser — full matches or drills, up to 1 GB. Tell your coach what to focus on.",
   },
   {
     step: "03",

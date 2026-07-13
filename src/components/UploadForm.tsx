@@ -119,12 +119,16 @@ export function UploadForm({
         <ul className="mt-1 list-inside list-disc space-y-0.5">
           <li>Film from behind the court, high enough to see both your feet and the ball</li>
           <li>Landscape, steady phone — a fence post or tripod beats a shaky hand</li>
+          <li>
+            Film at <span className="font-semibold">1080p, not 4K</span> — the feedback is
+            identical and your upload is ~4× faster (a full match fits in 1 GB)
+          </li>
           <li>For shot analysis: 1–2 minutes of repetitions; for tactics: 10–20 minutes of match play</li>
           <li>Make sure you are identifiable (say your shirt colour in the notes)</li>
         </ul>
       </div>
       <div>
-        <label className="label" htmlFor="video">Video file (MP4, MOV, WEBM — max 500 MB)</label>
+        <label className="label" htmlFor="video">Video file (MP4, MOV, WEBM — max 1 GB)</label>
         <input
           className="input"
           id="video"

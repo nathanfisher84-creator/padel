@@ -109,6 +109,9 @@ model VideoSubmission {
   // Comma-separated shot keys the player wants analysed (see FOCUS_SHOTS).
   focusShots String?
   videoPath  String
+  // Set when the raw video file was deleted by the retention cron (30 days
+  // after the review was delivered). Feedback and timestamped notes remain.
+  videoPurgedAt DateTime?
   status     String // AWAITING_FEEDBACK | REVIEWED
   // Set when the submission consumed a one-off review credit.
   paymentId  String?  @unique

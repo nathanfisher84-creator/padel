@@ -26,7 +26,7 @@ also power a future native mobile app.
 
 | Role | What they can do |
 | --- | --- |
-| **Player** | Register free · browse coaches · buy a one-off review or monthly plan · upload videos (MP4/MOV/WEBM/AVI, up to 500 MB) · receive written feedback — from a human coach or the instant **AI Coach** |
+| **Player** | Register free · browse coaches · buy a one-off review or monthly plan · upload videos (MP4/MOV/WEBM/AVI, up to 1 GB) · receive written feedback — from a human coach or the instant **AI Coach** |
 | **Coach** | Register free · manage public profile & pricing · review queue of submitted videos · watch videos & send feedback · see earnings (after platform fee) and active subscriber count |
 | **Admin (owner)** | Platform dashboard: gross revenue, platform earnings, coach payouts, user/submission counts, full payment ledger |
 
@@ -82,6 +82,7 @@ See [`.env.example`](.env.example) for the full list:
 | `GEMINI_API_KEY` | Enables the AI Coach video reviews and AI-standardized coach photos (optional) |
 | `RESEND_API_KEY` | Enables email notifications via Resend (optional) |
 | `OWNER_NOTIFY_EMAIL` | Where owner sale/AI-upload alerts go (falls back to `ADMIN_EMAIL`) |
+| `CRON_SECRET` | Protects the daily video-retention cron (required in production) |
 
 ## Deploying to Vercel
 

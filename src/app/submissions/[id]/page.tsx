@@ -68,12 +68,39 @@ export default async function SubmissionPage({
         </p>
       </div>
 
-      <AnalysisPlayer
-        src={`/api/videos/${submission.id}/stream`}
-        submissionId={submission.id}
-        editable={canAnnotate}
-        initialComments={showComments ? submission.comments : []}
-      />
+      {submission.videoPurgedAt ? (
+        <div className="card text-sm text-slate-600">
+          <p className="font-semibold text-slate-700">
+            The video file was removed 30 days after your review was delivered.
+          </p>
+          <p className="mt-1">
+            Your written feedback{showComments && submission.comments.length > 0
+              ? " and the timestamped notes below are"
+              : " is"}{" "}
+            kept forever.
+          </p>
+          {showComments && submission.comments.length > 0 && (
+            <ul className="mt-4 space-y-2">
+              {submission.comments.map((c) => (
+                <li key={c.id} className="flex gap-3">
+                  <span className="stat shrink-0 font-semibold text-court-700">
+                    {Math.floor(c.timeSeconds / 60)}:
+                    {String(Math.floor(c.timeSeconds % 60)).padStart(2, "0")}
+                  </span>
+                  <span>{c.body}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : (
+        <AnalysisPlayer
+          src={`/api/videos/${submission.id}/stream`}
+          submissionId={submission.id}
+          editable={canAnnotate}
+          initialComments={showComments ? submission.comments : []}
+        />
+      )}
 
       {submission.focusShots && (
         <div className="flex flex-wrap items-center gap-2">
