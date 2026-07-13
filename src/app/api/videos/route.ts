@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSession, type SessionUser } from "@/lib/auth";
 import { getEntitlementForCoach } from "@/lib/entitlements";
+import { reviewDueAt } from "@/lib/deadlines";
 import { Role, SubmissionStatus, FOCUS_SHOT_KEYS } from "@/lib/constants";
 import {
   isVercelBlobUrl,
@@ -120,7 +121,9 @@ async function createSubmission(
     select: {
       email: true,
       name: true,
-      coachProfile: { select: { isAi: true, isPublished: true } },
+      coachProfile: {
+        select: { isAi: true, isPublished: true, turnaroundHours: true },
+      },
     },
   });
   if (!coach?.coachProfile?.isPublished) {
@@ -170,6 +173,8 @@ async function createSubmission(
       playerName: session.name,
       title,
       submissionId: submission.id,
+      turnaroundHours: coach.coachProfile.turnaroundHours,
+      dueAt: reviewDueAt(submission.createdAt, coach.coachProfile.turnaroundHours),
     });
   }
 
