@@ -35,3 +35,14 @@ export function demoPaymentsAllowed(): boolean {
 export function appUrl(): string {
   return process.env.APP_URL ?? "http://localhost:3000";
 }
+
+/**
+ * Testing-phase promo code: redeeming it grants one free AI video review
+ * (a zero-amount credit). Override with AI_PROMO_CODE to rotate the code,
+ * or set AI_PROMO_CODE=off to disable redemptions entirely.
+ */
+export function aiPromoCode(): string | null {
+  const raw = (process.env.AI_PROMO_CODE ?? "NOVAFREE").trim().toUpperCase();
+  if (!raw || raw === "OFF") return null;
+  return raw;
+}
