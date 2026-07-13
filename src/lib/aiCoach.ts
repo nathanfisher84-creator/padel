@@ -456,11 +456,26 @@ const RESPONSE_SCHEMA = {
  * prominent player) instead of matching shirt + shorts + starting position
  * together by eliminating every player on court.
  */
-function whoToAnalyseLines(input: AiReviewInput): string[] {
+function whoToAnalyseLines(
+  input: AiReviewInput,
+  confirmedIdentification?: string | null
+): string[] {
   if (!input.playerOutfit) return [];
   const where = input.playerSide
     ? ` At the START of the video they are positioned: ${input.playerSide} (positions are as seen on screen from the camera).`
     : "";
+  const confirmation = confirmedIdentification
+    ? [
+        "",
+        "CONFIRMED IDENTIFICATION — you already performed a dedicated first",
+        "viewing of this video's opening at a high frame rate specifically to",
+        "identify the target. Your conclusion was:",
+        `"${confirmedIdentification}"`,
+        "Apply this identification. Re-verify the stated markers at every",
+        "moment you analyse or timestamp — players swap sides and cross the",
+        "camera during rallies.",
+      ]
+    : [];
   return [
     "",
     "WHO TO ANALYSE — this is critical. There may be up to four players on",
@@ -484,11 +499,135 @@ function whoToAnalyseLines(input: AiReviewInput): string[] {
     "matches more than one person, say so explicitly and only analyse the",
     "moments where you are certain — never guess and never silently analyse",
     "a different player.",
+    ...confirmation,
     "",
   ];
 }
 
-function buildReviewPrompt(input: AiReviewInput): string {
+/** What the identification pass must return. */
+const IDENTIFY_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    players: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          position: { type: "STRING" },
+          outfit: { type: "STRING" },
+        },
+        required: ["position", "outfit"],
+      },
+    },
+    target: { type: "STRING" },
+  },
+  propertyOrdering: ["players", "target"],
+  required: ["players", "target"],
+} as const;
+
+/**
+ * Dedicated identification pass: watch only the opening of the video at a
+ * higher frame rate (default 1fps sampling blurs outfit details) and pick the
+ * target player by full-description elimination. The verdict is injected into
+ * the analysis prompt as a confirmed identification.
+ *
+ * Best-effort: returns null when no outfit was provided, and callers treat a
+ * thrown error as "proceed without confirmation" — the hardened single-pass
+ * instructions still apply.
+ */
+async function identifyTargetPlayer(
+  apiKey: string,
+  file: { uri: string; mimeType: string },
+  input: AiReviewInput
+): Promise<string | null> {
+  if (!input.playerOutfit) return null;
+  const where = input.playerSide
+    ? ` At the start of the video they are positioned: ${input.playerSide} (as seen on screen from the camera).`
+    : "";
+  const prompt = [
+    "You are identifying ONE padel player in this video so a coach analyses",
+    "the right person. Accuracy matters more than speed.",
+    "",
+    `TARGET DESCRIPTION: wearing ${input.playerOutfit}.${where}`,
+    "",
+    "Watch the clip carefully, then:",
+    "1. List EVERY player you can see — their position on screen (near/far",
+    "   side of the net, left/right half of the screen) and their FULL outfit:",
+    "   shirt colour AND shorts colour, plus any cap, hair or shoe details.",
+    "2. Decide which single player matches the FULL target description —",
+    "   shirt AND shorts AND starting position must all fit together. Beware",
+    "   inverted outfits (another player wearing the same colours swapped is",
+    "   NOT the target). Being closer to the camera, larger in frame, or more",
+    "   active does NOT make a player the target.",
+    "",
+    "Return JSON with:",
+    "- players: one entry per visible player ({position, outfit}).",
+    "- target: 2-3 sentences stating exactly which player is the target,",
+    "  the distinguishing markers to track them for the rest of the footage",
+    "  (relative to the OTHER players' outfits), and your confidence (high /",
+    "  medium / low) with any ambiguity called out plainly.",
+  ].join("\n");
+
+  const attempt = async (withClip: boolean) => {
+    const videoPart: Record<string, unknown> = {
+      fileData: { fileUri: file.uri, mimeType: file.mimeType },
+    };
+    if (withClip) {
+      // Opening minute at 3fps: enough motion to separate players without
+      // paying full-video token costs twice.
+      videoPart.videoMetadata = { startOffset: "0s", endOffset: "60s", fps: 3 };
+    }
+    return fetch(`${GEMINI_BASE}/v1beta/models/${VIDEO_MODEL()}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      body: JSON.stringify({
+        contents: [{ parts: [videoPart, { text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: IDENTIFY_SCHEMA,
+          temperature: 0.1,
+        },
+      }),
+    });
+  };
+
+  // Prefer the clipped high-fps pass; fall back to default sampling if the
+  // API rejects the clip parameters.
+  let res = await attempt(true);
+  if (!res.ok) res = await attempt(false);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Gemini identify pass ${res.status}: ${detail.slice(0, 300)}`);
+  }
+
+  const json = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const text = json.candidates?.[0]?.content?.parts
+    ?.map((p) => p.text ?? "")
+    .join("");
+  if (!text) return null;
+  try {
+    const parsed = JSON.parse(text) as {
+      players?: { position: string; outfit: string }[];
+      target?: string;
+    };
+    if (!parsed.target?.trim()) return null;
+    const roster = (parsed.players ?? [])
+      .map((p) => `${p.position}: ${p.outfit}`)
+      .join("; ");
+    return roster
+      ? `${parsed.target.trim()} (Players on court — ${roster})`
+      : parsed.target.trim();
+  } catch {
+    return null;
+  }
+}
+
+function buildReviewPrompt(
+  input: AiReviewInput,
+  confirmedIdentification?: string | null
+): string {
   const lines = [
     PADEL_KNOWLEDGE,
     "",
@@ -498,7 +637,7 @@ function buildReviewPrompt(input: AiReviewInput): string {
     "",
     `The player titled the video: "${input.title}".`,
   ];
-  lines.push(...whoToAnalyseLines(input));
+  lines.push(...whoToAnalyseLines(input, confirmedIdentification));
   if (input.notes) {
     lines.push(`The player's notes to the coach: "${input.notes}".`);
   }
@@ -746,6 +885,15 @@ export async function generateAiReview(
   const { bytes, mimeType } = await loadVideo(input.video);
   const file = await uploadVideoToGemini(apiKey, bytes, mimeType);
 
+  // Dedicated identification pass first (best-effort): a wrong player makes
+  // the whole review worthless, so it gets its own focused viewing.
+  let confirmedId: string | null = null;
+  try {
+    confirmedId = await identifyTargetPlayer(apiKey, file, input);
+  } catch (err) {
+    console.warn("Identify pass failed; continuing without confirmation:", err);
+  }
+
   const res = await fetch(
     `${GEMINI_BASE}/v1beta/models/${VIDEO_MODEL()}:generateContent`,
     {
@@ -756,7 +904,7 @@ export async function generateAiReview(
           {
             parts: [
               { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
-              { text: buildReviewPrompt(input) },
+              { text: buildReviewPrompt(input, confirmedId) },
             ],
           },
         ],
@@ -841,7 +989,10 @@ const PRESCAN_SCHEMA = {
   required: ["identification", "inventory", "level", "suggestions"],
 } as const;
 
-function buildPrescanPrompt(input: AiReviewInput): string {
+function buildPrescanPrompt(
+  input: AiReviewInput,
+  confirmedIdentification?: string | null
+): string {
   const lines = [
     PADEL_KNOWLEDGE,
     "",
@@ -853,7 +1004,7 @@ function buildPrescanPrompt(input: AiReviewInput): string {
     "",
     `The player titled the video: "${input.title}".`,
   ];
-  lines.push(...whoToAnalyseLines(input));
+  lines.push(...whoToAnalyseLines(input, confirmedIdentification));
   if (input.notes) {
     lines.push(`The player's notes to the coach: "${input.notes}".`);
   }
@@ -915,6 +1066,15 @@ export async function generateAiPrescan(
   const { bytes, mimeType } = await loadVideo(input.video);
   const file = await uploadVideoToGemini(apiKey, bytes, mimeType);
 
+  // Same best-effort identification pass as reviews: coaches must be able to
+  // trust the "Player tracked" line.
+  let confirmedId: string | null = null;
+  try {
+    confirmedId = await identifyTargetPlayer(apiKey, file, input);
+  } catch (err) {
+    console.warn("Identify pass failed; continuing without confirmation:", err);
+  }
+
   const res = await fetch(
     `${GEMINI_BASE}/v1beta/models/${VIDEO_MODEL()}:generateContent`,
     {
@@ -925,7 +1085,7 @@ export async function generateAiPrescan(
           {
             parts: [
               { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
-              { text: buildPrescanPrompt(input) },
+              { text: buildPrescanPrompt(input, confirmedId) },
             ],
           },
         ],
