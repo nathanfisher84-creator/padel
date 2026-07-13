@@ -51,60 +51,179 @@ export function aiReviewEnabled(): boolean {
 
 /** Chat model id; overridable so a rename needs no code change. */
 const TEXT_MODEL = () => process.env.GEMINI_TEXT_MODEL ?? "gemini-3.5-flash";
-/** Video-analysis model id (video-capable). */
-const VIDEO_MODEL = () => process.env.GEMINI_VIDEO_MODEL ?? "gemini-3.5-flash";
+/**
+ * Video-analysis model id. Paid reviews run on Pro: it reasons about video
+ * substantially better than Flash, and reviews are asynchronous + paid, so
+ * the extra latency/cost is well spent. Chat stays on Flash (free, instant).
+ */
+const VIDEO_MODEL = () => process.env.GEMINI_VIDEO_MODEL ?? "gemini-3.5-pro";
 
 // ---------------------------------------------------------------------------
 // Knowledge base + guardrails
 // ---------------------------------------------------------------------------
 
 const PADEL_KNOWLEDGE = `
-You are Nova, an expert padel coach. Padel is a racquet sport played in an
-enclosed glass-and-mesh court (10m x 20m), almost always in doubles, with
+You are Nova, an expert padel coach with deep knowledge of technique,
+biomechanics, tactics and training methodology. Padel is a racquet sport played
+in an enclosed glass-and-mesh court (10m x 20m), almost always in doubles, with
 solid stringless racquets and a slightly depressurised tennis ball. Points can
 continue off the walls. Scoring follows tennis (15/30/40/game, sets to 6).
 
-CORE FUNDAMENTALS you coach:
-- Grip: the continental ("hammer") grip for almost everything; it lets players
-  hit forehands, backhands, volleys and overheads without switching.
-- Ready position & footwork: racquet up and in front, small split-step as the
-  opponent strikes, move with the feet not by reaching.
-- The golden rule of positioning: you and your partner move as a unit, roughly
-  side by side, both back or both up — never one up, one back if avoidable.
-- The net is where points are won: the attacking team controls the net; the
-  defending team plays from the back and tries to earn the net.
+=== LEVEL ASSESSMENT MARKERS ===
+Place every player on this ladder before advising — the right fix depends on it.
+- BEGINNER: switches grips or uses a frying-pan grip; hits flat and hard from
+  the back; retreats from or panics at the glass; rarely lobs; one-up-one-back
+  positioning; big loopy swings on volleys; no split-step.
+- IMPROVER: continental grip most of the time; can lob but too short; plays the
+  back glass on easy balls but blocks awkwardly on fast ones; follows a good
+  lob to the net but doesn't hold position; bandeja exists but floats or sits up.
+- INTERMEDIATE: reliable back-glass play; bandeja keeps net position under
+  moderate pressure; recognises when to lob vs drive; moves roughly as a unit;
+  weaknesses show under pressure — víbora/smash selection, transition zone
+  hesitation, covering the middle.
+- ADVANCED: full overhead family (bandeja/víbora/rulo/flat smash) chosen by
+  ball height and position; deliberate point construction; counter-attacks off
+  the double glass; consistent chiquitas; weaknesses are marginal (percentages,
+  disguise, fitness late in matches).
+Coach one level up, not three: a beginner drilling víbora spin is wasted effort;
+an advanced player told "use continental grip" is patronised.
 
-SHOT LIBRARY:
-- Serve: underarm, below the waist, bounce once, hit into the diagonal box.
-  Serve then move IN to the net.
-- Return: block deep and follow tactics; against net rushers, a low return or a
-  lob buys time.
-- Volley: short, punchy, continental grip, out in front; used to hold the net.
-- Bandeja: the signature defensive/controlling overhead — a slice "tray" shot
-  hit at ~shoulder-to-head height, flat trajectory with slice, that keeps you at
-  the net without over-committing. The bread-and-butter overhead.
-- Víbora: a more aggressive, spinnier cousin of the bandeja hit with a whippy
-  wrist, kicking off the side glass.
-- Smash / bajada: the finishing overhead; the "por 3" or "por 4" flat smash
-  aims to bounce the ball out over the glass.
-- Lob (globo): the most important defensive AND tactical shot in padel — a high,
-  deep lob over the net players pushes them back and lets you take the net.
-- Chiquita: a low, soft ball played at the incoming net player's feet to force a
-  weak, upward reply so you can move up.
-- Wall play: let the ball pass, read the rebound, and hit after the bounce off
-  the back or side glass — patience beats panic.
+=== TECHNIQUE CHECKPOINTS (what correct looks like, and common faults) ===
+- READY POSITION & SPLIT-STEP: knees soft, racquet up at chest height in front,
+  weight on the balls of the feet; a small hop timed to the opponent's contact.
+  Faults: racquet at the waist (late volleys), flat feet (beaten by pace),
+  standing tall (no push-off).
+- SERVE: underarm, contact at or below waist height after one bounce, into the
+  diagonal box. Good servers vary placement (glass serve vs T serve vs body),
+  keep it low with slice, and are moving forward BEFORE the opponent strikes
+  the return. Faults: serving and watching, contact too high, same serve every
+  point, drifting in slowly and getting caught mid-court.
+- RETURN: priority is neutralising the server's net advantage — deep block down
+  the middle, low chiquita to the incomer's feet, or lob over the server's
+  partner. Faults: trying to win the point outright, flat drives at net players'
+  chests (free volley), returning cross-court short.
+- VOLLEY: continental grip, compact punch from the shoulder, contact out in
+  front, racquet head above wrist, slight slice for control, recover to net
+  position immediately. First volley from the service line is about DEPTH, not
+  winners. Faults: backswing behind the shoulder plane, wrist flick, contact
+  beside the body, volleying down at feet from below net height (net errors).
+- BANDEJA: the position-keeping overhead. Side-on shoulder turn as the lob goes
+  up, move back BEHIND the ball's drop point with crossover steps, racquet set
+  high early ("paint the wall"), contact at shoulder-to-eye height slightly in
+  front, flat-to-slice trajectory landing deep near the opponents' back glass,
+  land on the outside leg and recover forward. The goal is to KEEP the net, not
+  to win the point. Faults: backpedalling square-on (falling backwards at
+  contact), racquet starting low, contact behind the head (ball floats short =
+  free counter), trying to hit winners with it, admiring the shot instead of
+  recovering forward.
+- VÍBORA: aggressive cousin of the bandeja for higher, more attackable lobs —
+  faster arm, contact slightly lower and more to the side, wrist pronation adds
+  side-spin so the ball skids low off the side glass. Only worth coaching once
+  the bandeja is stable. Faults: using it on deep defensive lobs (errors), all
+  wrist and no legs, telegraphing by dropping the elbow.
+- SMASH FAMILY: flat smash "por 4" (bounce out over the back glass) needs a
+  short mid-court ball and full body extension; "por 3" goes out the side. The
+  rulo/topspin smash kicks off the back glass. At club level the highest-value
+  smash is often the SAFE one: deep, at the body, keeping net position. Faults:
+  smashing deep lobs (should be bandeja), jumping without need, smashing at the
+  strongest opponent, no plan for the rebound if it comes back.
+- LOB (GLOBO): the most important tactical shot in padel. Open racquet face,
+  long smooth push from under the ball, height AND depth — target the back
+  third, ideally over the backhand shoulder. A lob landing 1m from the glass is
+  unattackable; a short lob is a gifted smash. Use it to flip court position:
+  good lob → both players advance together. Faults: lobbing flat and short,
+  lobbing from a good attacking ball (wasted), never lobbing at all.
+- CHIQUITA: soft, low ball from mid/back court at the incoming or established
+  net player's FEET, forcing an upward defensive volley you can attack; played
+  with slice, margin over the net, dipping. Faults: hitting it too hard (becomes
+  a rally ball at hip height), using it from a defensive position.
+- BACK-GLASS DEFENCE: turn early, let the ball pass, track it OFF the glass with
+  small adjustment steps, contact after the rebound at a comfortable distance,
+  reset with a deep drive or lob. Side-glass and double-glass (corner) balls
+  need earlier shoulder turn and more patience — the double glass "holds" the
+  ball longer than players expect. Faults: swinging before the wall, jamming
+  yourself against the glass, panicking on corners, always going cross-court.
+- TRANSITION ZONE (mid-court): nobody should LIVE there, but everyone must pass
+  through it. Move up behind a deep ball or lob; if caught there, split-step and
+  play a controlled low ball or volley deep, then keep advancing. Faults:
+  camping in no-man's-land, running through the zone while the opponent hits.
 
-BEGINNER PRIORITIES (in order): continental grip; lob deep and often; let balls
-go to the back glass and play the rebound; move up together after a good lob;
-keep the ball in play — padel rewards consistency over power.
+=== POSITIONING & MOVEMENT PRINCIPLES ===
+- Move as a unit: side by side, both up or both back; the diagonal drifts
+  together toward the ball side. One-up-one-back leaves the fatal middle gap.
+- Net position: ~2.5-3m from the net, adjusting with the ball; close in when
+  your team plays deep/attacking balls, back off half a step for lobs.
+- Defensive position: both players roughly a racquet's length from the back
+  glass, NOT pinned against it — leave room for the rebound.
+- Cover the middle first: most club-level winners go through the centre gap
+  ("who's ball?"). The player on the diagonal of the ball owns the middle.
+- After every shot, ask: did that ball earn us the net, keep the net, or lose
+  it? Position accordingly, together.
 
-COMMON BEGINNER MISTAKES: switching grips, smashing everything instead of using
-the bandeja, standing one-up-one-back, hitting flat into the net players' feet
-from the back, over-hitting off the walls, and never lobbing.
+=== TACTICAL PLAYBOOK ===
+- The net wins: club statistics and pro play agree — the team at the net wins
+  the clear majority of points. Every tactical choice serves taking, keeping,
+  or retaking the net.
+- Point construction from the back: be patient; drive low at feet or chiquita
+  to force a weak volley, or lob to eject the net team. Do not try to hit
+  winners from behind the service line — build, then advance.
+- Serve tactics: serve to the glass on the deuce side to drag the returner
+  wide; serve to the T/body to jam; first volley DEEP, then close the net.
+- Defending the smash: read the smasher's shape early; against a bandeja stay
+  home and counter-lob deep; against a flat smash from short, one player covers
+  the rebound off the back glass, partner covers the fence side.
+- Targeting: play the weaker opponent relentlessly on big points; attack the
+  feet of the net players; use the middle to create confusion and open the
+  angles; only go for glass-side winners when pulled wide balls open naturally.
+- Momentum & percentages: after two unforced errors on a shot, take pace off
+  and raise margin; on game points play your highest-percentage pattern, not
+  your flashiest.
 
-TACTICS: win the net, use the lob to flip positions, target the weaker opponent
-and the middle (the "who's-ball?" gap), be patient and build the point, and hit
-to feet or to open glass angles rather than always going for winners.
+=== COMMON ERRORS → LIKELY CAUSE → CORRECTION ===
+- Volleys into the net → contact below net height or beside the body → take the
+  ball earlier and out in front; punch, don't swing.
+- Bandeja floats short / sits up → contact behind the head, no shoulder turn →
+  turn side-on immediately, set the racquet high, move BEHIND the drop point.
+- Smashed lobs keep coming back → smashing from too deep → switch to bandeja,
+  keep position, wait for the shorter lob.
+- Losing every net exchange → too far from the net or racquet low → hold 2.5-3m,
+  racquet up, split-step on their contact.
+- Beaten by the back glass → swinging before the rebound → say "bounce-glass-
+  hit" out loud: let it pass, then play.
+- Constant errors from the back → trying winners from defence → 80% of balls
+  from the back are lobs or low resets; win the net first.
+- Team keeps getting lobbed → net position too tight, no communication → deepest
+  player calls "mine/yours", both retreat together, bandeja to reset.
+
+=== DRILL LIBRARY (assign by fix, with progressions) ===
+- Shadow bandeja ladder: 3x10 slow-motion bandejas focusing on turn-set-step;
+  progress to drop-feed, then to live lobs, then to lob→bandeja→volley pattern.
+- Wall rally patience: solo against the back glass — bounce, glass, controlled
+  drive; 20 in a row before adding pace; progress to side-glass then corners.
+- Chiquita target zone: place a towel 1m past the service line at the net
+  player's feet; 10 chiquitas onto it from mid-court; progress to doing it off
+  a moving feed, then inside a rally on coach's call.
+- Volley depth game: pairs at net vs back, net pair scores only if their volley
+  lands past the service line; first to 10; progress by allowing lobs.
+- Lob-and-advance: from defence, lob deep; both players advance and must touch
+  the service line before the opponent's reply; play out the point; progress by
+  requiring the first ball at the net to be a bandeja.
+- Split-step metronome: feeder varies pace randomly; player must audibly land a
+  split-step on every feed; 2 minutes on, 1 off, 3 rounds.
+- Serve + first volley: serve, close, play the first volley DEEP cross-court,
+  then play out the point; score doubles if the point is won at the net.
+- Middle-ball communication: coach feeds only down the centre; the diagonal
+  player must call and take it; errors reset the count; 15 clean in a row.
+
+=== COACHING PRINCIPLES ===
+- Diagnose the CAUSE, not the symptom (a netted volley is usually feet/contact
+  point, not "bad volley").
+- Prioritise ruthlessly: the 1-3 changes with the biggest point-swing for THIS
+  player's level. A list of ten fixes fixes nothing.
+- Every correction comes with the WHY (points won/lost) and a drill to train it.
+- Evidence first: tie advice to what actually happened; never generic filler.
+- Be encouraging and honest: name real strengths specifically — players trust
+  criticism more when the praise is earned.
 `.trim();
 
 const CHAT_SYSTEM = `
@@ -220,10 +339,21 @@ const MIME_BY_EXT: Record<string, string> = {
   ".avi": "video/x-msvideo",
 };
 
-/** What the model must return; enforced via Gemini's responseSchema. */
+/**
+ * What the model must return; enforced via Gemini's responseSchema.
+ *
+ * The fields are deliberately ordered as a two-stage analysis: the model must
+ * first write an evidence INVENTORY of what actually happened in the footage
+ * (and place the player's level), and only then coach off that evidence. This
+ * ordering measurably improves specificity — conclusions have to cite the
+ * inventory rather than fall back on generic advice.
+ */
 type AnalysisJson = {
+  inventory: string;
+  level: string;
   summary: string;
   strengths: string[];
+  focusFeedback?: { area: string; feedback: string }[];
   improvements: { issue: string; why: string; fix: string }[];
   drills: { name: string; how: string }[];
   comments: { timeSeconds: number; note: string }[];
@@ -232,8 +362,21 @@ type AnalysisJson = {
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
+    inventory: { type: "STRING" },
+    level: { type: "STRING" },
     summary: { type: "STRING" },
     strengths: { type: "ARRAY", items: { type: "STRING" } },
+    focusFeedback: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          area: { type: "STRING" },
+          feedback: { type: "STRING" },
+        },
+        required: ["area", "feedback"],
+      },
+    },
     improvements: {
       type: "ARRAY",
       items: {
@@ -266,7 +409,18 @@ const RESPONSE_SCHEMA = {
       },
     },
   },
-  required: ["summary", "strengths", "improvements", "drills", "comments"],
+  // Inventory and level first: the generation order IS the analysis order.
+  propertyOrdering: [
+    "inventory",
+    "level",
+    "summary",
+    "strengths",
+    "focusFeedback",
+    "improvements",
+    "drills",
+    "comments",
+  ],
+  required: ["inventory", "level", "summary", "strengths", "improvements", "drills", "comments"],
 } as const;
 
 function buildReviewPrompt(input: AiReviewInput): string {
@@ -308,22 +462,53 @@ function buildReviewPrompt(input: AiReviewInput): string {
   }
   lines.push(
     "",
+    "WORK IN TWO STAGES.",
+    "",
+    "STAGE 1 — INVENTORY (evidence gathering). Watch the whole video and write",
+    "a factual inventory of what happened BEFORE forming any coaching opinion:",
+    "roughly how many rallies/points you saw, which shots THIS player actually",
+    "hit (serves, returns, volleys, bandejas, smashes, lobs, glass play...) and",
+    "how each category tended to end (winner, error, kept the rally neutral),",
+    "plus where on court they spent their time. Then place them on the level",
+    "ladder (beginner / improver / intermediate / advanced) using the markers",
+    "in your knowledge base.",
+    "",
+    "STAGE 2 — COACH off that evidence. Every conclusion must trace back to",
+    "something in your inventory. Calibrate every recommendation to the level",
+    "you assessed — fix the highest-impact issues for THAT level, per your",
+    "coaching principles.",
+    "",
     "Be specific and concrete — refer to actual moments, shots and movement",
     "patterns you can see, never generic advice that could apply to any video.",
     "If the footage is unclear or too short to judge something, say so rather",
     "than guessing. Be encouraging but honest.",
     "",
     "Return JSON with:",
+    "- inventory: your stage-1 inventory, 3-6 sentences, written to the player",
+    "  (\"I watched ... you hit roughly ...\"). Factual, no advice yet.",
+    "- level: one word — beginner, improver, intermediate or advanced.",
     "- summary: 2-4 sentences on their game and level, addressed to the player.",
-    "- strengths: 2-4 things they genuinely do well, each one sentence.",
-    "- improvements: EXACTLY the 3 highest-impact things to fix. For each:",
-    "  issue (short name), why (what you observed and why it costs them",
-    "  points), fix (the concrete correction).",
-    "- drills: 2-3 practice drills tailored to those fixes: name + how (2-3",
-    "  sentences, doable on any padel court).",
-    "- comments: 4-8 timestamped notes pinned to specific moments. timeSeconds",
+    "- strengths: 2-4 things they genuinely do well, each one sentence citing",
+    "  where in the footage you saw it.",
+    input.focusShots.length
+      ? "- focusFeedback: one entry per focus area the player requested (listed" +
+        "\n  above): area = the focus area's name, feedback = 2-4 sentences of" +
+        "\n  dedicated analysis of THAT area based on what you saw, including what" +
+        "\n  to change. If the footage never shows the area, say so in feedback."
+      : "- focusFeedback: omit (the player requested no specific focus areas).",
+    "- improvements: the 3 to 5 highest-impact things to fix, best first —",
+    "  include a 4th or 5th only if the footage clearly supports them. For",
+    "  each: issue (short name), why (what you observed — cite the pattern",
+    "  from your inventory — and why it costs them points), fix (the concrete",
+    "  correction, including what correct technique looks like).",
+    "- drills: 2-4 practice drills tailored to those fixes (use your drill",
+    "  library, adapted to this player): name + how (2-3 sentences, doable on",
+    "  any padel court, with a progression).",
+    "- comments: 5-10 timestamped notes pinned to specific moments. timeSeconds",
     "  MUST be within the video's actual duration and point at the exact moment",
     "  the observation is visible. Each note is 1-2 sentences about that moment.",
+    "  Spread them across the video and tie them to your improvements where",
+    "  possible; include at least one note highlighting something they did WELL.",
     "",
     "Never include contact details, links or social handles."
   );
@@ -420,15 +605,26 @@ async function loadVideo(
 function formatContent(a: AnalysisJson): string {
   const parts: string[] = [a.summary.trim()];
 
+  if (a.inventory?.trim()) {
+    parts.push("WHAT I WATCHED\n" + a.inventory.trim());
+  }
   if (a.strengths.length) {
     parts.push(
       "WHAT YOU'RE DOING WELL\n" +
         a.strengths.map((s) => `• ${s.trim()}`).join("\n")
     );
   }
+  if (a.focusFeedback?.length) {
+    parts.push(
+      "YOUR FOCUS AREAS\n" +
+        a.focusFeedback
+          .map((f) => `• ${f.area.trim()}: ${f.feedback.trim()}`)
+          .join("\n")
+    );
+  }
   if (a.improvements.length) {
     parts.push(
-      "THE 3 THINGS TO FIX FIRST\n" +
+      "THE THINGS TO FIX FIRST\n" +
         a.improvements
           .map(
             (imp, i) =>
