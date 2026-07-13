@@ -1,29 +1,196 @@
 /**
- * The PadelPro AI Coach: watches a player's uploaded video with Google's
- * Gemini video-understanding model and produces the same deliverable a human
- * coach would — written feedback plus timestamped notes pinned to moments in
- * the video.
+ * The built-in AI padel coach ("Nova").
  *
- * Reuses the GEMINI_API_KEY already used for photo standardization. The
- * engine is isolated here so it can be swapped for another provider without
- * touching the API route or UI. Without a key the caller falls back to a
- * clearly-labelled demo review (dev/preview) or reports the feature off.
+ * Nova is Google Gemini equipped with a curated padel-coaching knowledge base
+ * and tight guardrails so it behaves like a knowledgeable, padel-only coach.
+ * It powers two features:
+ *
+ *   1. a FREE instant coaching chat (text) — the lead magnet, and
+ *   2. PAID instant video reviews: Nova watches the player's full uploaded
+ *      video (via the Gemini Files API, so full-length match videos work, not
+ *      just short clips) and delivers written feedback plus timestamped notes
+ *      pinned to moments in the footage — the same deliverable a human coach
+ *      produces, in minutes. The platform keeps 100% of these payments.
+ *
+ * The engine is isolated here so the provider can be swapped without touching
+ * the routes or UI. Set GEMINI_API_KEY to turn it on; in local development
+ * AI_COACH_FAKE=1 exercises the chat UX with canned responses (never honoured
+ * in production), and video reviews fall back to a clearly-labelled demo.
  */
 
 import { readFile } from "fs/promises";
 import path from "path";
+import { db } from "@/lib/db";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com";
 
-/** Whether real AI video reviews are configured for this environment. */
+export const AI_COACH_EMAIL = "nova@padelpro.ai";
+export const AI_COACH_NAME = "Nova";
+
+/** The AI coach user (with profile), or null if it hasn't been seeded yet. */
+export async function getAiCoach() {
+  return db.user.findFirst({
+    where: { email: AI_COACH_EMAIL },
+    include: { coachProfile: true },
+  });
+}
+
+function fakeMode(): boolean {
+  return process.env.NODE_ENV !== "production" && process.env.AI_COACH_FAKE === "1";
+}
+
+/** Whether the AI coach chat can answer (real key, or dev fake mode). */
+export function aiCoachEnabled(): boolean {
+  return Boolean(process.env.GEMINI_API_KEY) || fakeMode();
+}
+
+/** Whether real (paid) AI video reviews are configured for this environment. */
 export function aiReviewEnabled(): boolean {
   return Boolean(process.env.GEMINI_API_KEY);
 }
 
-/** Video model id; overridable so a rename needs no code change. */
-function videoModel(): string {
-  return process.env.GEMINI_VIDEO_MODEL ?? "gemini-2.5-flash";
+/** Chat model id; overridable so a rename needs no code change. */
+const TEXT_MODEL = () => process.env.GEMINI_TEXT_MODEL ?? "gemini-2.5-flash";
+/** Video-analysis model id (video-capable). */
+const VIDEO_MODEL = () => process.env.GEMINI_VIDEO_MODEL ?? "gemini-2.5-flash";
+
+// ---------------------------------------------------------------------------
+// Knowledge base + guardrails
+// ---------------------------------------------------------------------------
+
+const PADEL_KNOWLEDGE = `
+You are Nova, an expert padel coach. Padel is a racquet sport played in an
+enclosed glass-and-mesh court (10m x 20m), almost always in doubles, with
+solid stringless racquets and a slightly depressurised tennis ball. Points can
+continue off the walls. Scoring follows tennis (15/30/40/game, sets to 6).
+
+CORE FUNDAMENTALS you coach:
+- Grip: the continental ("hammer") grip for almost everything; it lets players
+  hit forehands, backhands, volleys and overheads without switching.
+- Ready position & footwork: racquet up and in front, small split-step as the
+  opponent strikes, move with the feet not by reaching.
+- The golden rule of positioning: you and your partner move as a unit, roughly
+  side by side, both back or both up — never one up, one back if avoidable.
+- The net is where points are won: the attacking team controls the net; the
+  defending team plays from the back and tries to earn the net.
+
+SHOT LIBRARY:
+- Serve: underarm, below the waist, bounce once, hit into the diagonal box.
+  Serve then move IN to the net.
+- Return: block deep and follow tactics; against net rushers, a low return or a
+  lob buys time.
+- Volley: short, punchy, continental grip, out in front; used to hold the net.
+- Bandeja: the signature defensive/controlling overhead — a slice "tray" shot
+  hit at ~shoulder-to-head height, flat trajectory with slice, that keeps you at
+  the net without over-committing. The bread-and-butter overhead.
+- Víbora: a more aggressive, spinnier cousin of the bandeja hit with a whippy
+  wrist, kicking off the side glass.
+- Smash / bajada: the finishing overhead; the "por 3" or "por 4" flat smash
+  aims to bounce the ball out over the glass.
+- Lob (globo): the most important defensive AND tactical shot in padel — a high,
+  deep lob over the net players pushes them back and lets you take the net.
+- Chiquita: a low, soft ball played at the incoming net player's feet to force a
+  weak, upward reply so you can move up.
+- Wall play: let the ball pass, read the rebound, and hit after the bounce off
+  the back or side glass — patience beats panic.
+
+BEGINNER PRIORITIES (in order): continental grip; lob deep and often; let balls
+go to the back glass and play the rebound; move up together after a good lob;
+keep the ball in play — padel rewards consistency over power.
+
+COMMON BEGINNER MISTAKES: switching grips, smashing everything instead of using
+the bandeja, standing one-up-one-back, hitting flat into the net players' feet
+from the back, over-hitting off the walls, and never lobbing.
+
+TACTICS: win the net, use the lob to flip positions, target the weaker opponent
+and the middle (the "who's-ball?" gap), be patient and build the point, and hit
+to feet or to open glass angles rather than always going for winners.
+`.trim();
+
+const CHAT_SYSTEM = `
+${PADEL_KNOWLEDGE}
+
+YOUR ROLE IN CHAT:
+- You are Nova, PadelPro's friendly AI coach. Coach the player conversationally.
+- Stay strictly on padel: technique, tactics, positioning, drills, rules,
+  equipment, fitness for padel, and match strategy. If asked about anything
+  unrelated, warmly redirect to padel in one sentence.
+- Be encouraging and clear — most people asking are beginners or improvers.
+- Keep answers concise and practical: lead with the key idea, then 2–4 short
+  actionable points or a simple drill. Use plain language; explain any padel
+  term you use. Prefer short paragraphs or tight bullet lists.
+- Never invent facts. If something depends on seeing them play, say so.
+- Occasionally (not every message) remind the player that for things you'd
+  need to see, they can get an instant AI video review from you (a low-cost
+  one-off — you watch their full video and pin timestamped notes to it), or
+  book one of PadelPro's human coaches for an in-depth technique breakdown.
+  Do not be pushy about it.
+- Never ask for or provide personal contact details; keep coaching on PadelPro.
+`.trim();
+
+// ---------------------------------------------------------------------------
+// Gemini text/chat calls
+// ---------------------------------------------------------------------------
+
+type GeminiPart = { text?: string };
+
+async function geminiGenerate(
+  system: string,
+  contents: { role: "user" | "model"; parts: GeminiPart[] }[],
+  opts: { maxOutputTokens?: number } = {}
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("AI coach is not configured.");
+
+  const endpoint = `${GEMINI_BASE}/v1beta/models/${TEXT_MODEL()}:generateContent`;
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents,
+      generationConfig: {
+        temperature: 0.6,
+        maxOutputTokens: opts.maxOutputTokens ?? 1024,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Gemini API ${res.status}: ${detail.slice(0, 300)}`);
+  }
+
+  const json = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const parts = json.candidates?.[0]?.content?.parts ?? [];
+  const text = parts.map((p) => p.text ?? "").join("").trim();
+  if (!text) throw new Error("The AI coach did not return a response.");
+  return text;
 }
+
+// ---------------------------------------------------------------------------
+// Public API: chat (free)
+// ---------------------------------------------------------------------------
+
+export type ChatMessage = { role: "user" | "assistant"; content: string };
+
+export async function coachChat(messages: ChatMessage[]): Promise<string> {
+  if (fakeMode()) {
+    const last = messages.filter((m) => m.role === "user").at(-1)?.content ?? "";
+    return `Great question! Here's the short version on "${last.slice(0, 60)}": keep the continental grip, lob deep to push the net players back, and move up with your partner as a unit. Try it 10 times next session. Want me to watch a video of you doing it? An instant review pins my notes to your actual footage.`;
+  }
+  const contents = messages.slice(-16).map((m) => ({
+    role: (m.role === "assistant" ? "model" : "user") as "user" | "model",
+    parts: [{ text: m.content }],
+  }));
+  return geminiGenerate(CHAT_SYSTEM, contents, { maxOutputTokens: 900 });
+}
+
+// ---------------------------------------------------------------------------
+// Public API: video review (paid) — full videos via the Gemini Files API
+// ---------------------------------------------------------------------------
 
 export type AiComment = { timeSeconds: number; body: string };
 
@@ -98,11 +265,13 @@ const RESPONSE_SCHEMA = {
   required: ["summary", "strengths", "improvements", "drills", "comments"],
 } as const;
 
-function buildPrompt(input: AiReviewInput): string {
+function buildReviewPrompt(input: AiReviewInput): string {
   const lines = [
-    "You are an expert padel coach reviewing a player's uploaded video for a",
-    "coaching marketplace. Watch the ENTIRE video carefully, then produce a",
-    "personal video review addressed directly to the player as \"you\".",
+    PADEL_KNOWLEDGE,
+    "",
+    "TASK: You are reviewing a player's uploaded video for a coaching",
+    "marketplace. Watch the ENTIRE video carefully, then produce a personal",
+    "video review addressed directly to the player as \"you\".",
     "",
     `The player titled the video: "${input.title}".`,
   ];
@@ -121,8 +290,8 @@ function buildPrompt(input: AiReviewInput): string {
     "",
     "Be specific and concrete — refer to actual moments, shots and movement",
     "patterns you can see, never generic advice that could apply to any video.",
-    "Use standard padel vocabulary (bandeja, víbora, chiquita, back-glass, net",
-    "transition) where it applies. Be encouraging but honest.",
+    "If the footage is unclear or too short to judge something, say so rather",
+    "than guessing. Be encouraging but honest.",
     "",
     "Return JSON with:",
     "- summary: 2-4 sentences on their game and level, addressed to the player.",
@@ -255,7 +424,7 @@ function formatContent(a: AnalysisJson): string {
     );
   }
   parts.push(
-    "Generated by the PadelPro AI Coach after watching your full video. The timestamped notes above are pinned to the exact moments — click one to jump there."
+    `— ${AI_COACH_NAME} (AI coach), after watching your full video. The timestamped notes above are pinned to the exact moments — click one to jump there. For a deep human breakdown of your technique, our pro coaches are one click away.`
   );
   return parts.join("\n\n");
 }
@@ -287,7 +456,7 @@ export async function generateAiReview(
   const file = await uploadVideoToGemini(apiKey, bytes, mimeType);
 
   const res = await fetch(
-    `${GEMINI_BASE}/v1beta/models/${videoModel()}:generateContent`,
+    `${GEMINI_BASE}/v1beta/models/${VIDEO_MODEL()}:generateContent`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -296,7 +465,7 @@ export async function generateAiReview(
           {
             parts: [
               { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
-              { text: buildPrompt(input) },
+              { text: buildReviewPrompt(input) },
             ],
           },
         ],
@@ -352,7 +521,7 @@ export function demoAiReview(input: {
     "WHAT YOU'RE DOING WELL\n• Good ready position between shots — racket up and weight forward.\n• You look to volley when you reach the net rather than staying passive.",
     "THE 3 THINGS TO FIX FIRST\n1. Bandeja preparation — the racket starts too low, so the shot becomes defensive.\n   Fix: turn side-on earlier and set the racket at head height before the ball drops.\n2. Net distance — you retreat to no-man's-land after each volley.\n   Fix: hold your ground 2-3 m from the net and recover forward, not backward.\n3. Lob depth — short lobs are gifting easy smashes.\n   Fix: aim for the back third; a lob that lands 1 m from the glass is unattackable.",
     "DRILLS FOR YOUR NEXT SESSION\n• Shadow bandejas: 3×10 slow-motion repetitions focusing on the early shoulder turn.\n• Volley-recover ladder: volley, touch the net tape line with your foot, recover — 2 minutes on, 1 off.",
-    "Generated by the PadelPro AI Coach (demo mode).",
+    `— ${AI_COACH_NAME} (AI coach, demo mode).`,
   ].join("\n\n");
   return {
     content,

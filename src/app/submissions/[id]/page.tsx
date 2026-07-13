@@ -38,8 +38,9 @@ export default async function SubmissionPage({
   if (!isPlayer && !isCoach && session.role !== Role.ADMIN) notFound();
 
   // The coach annotates while the review is open; once delivered the notes
-  // become part of the read-only feedback the player sees.
-  const canAnnotate = isCoach && !submission.feedback;
+  // become part of the read-only feedback the player sees. The AI coach writes
+  // its own notes, so there's no human annotation window.
+  const canAnnotate = isCoach && !isAiCoach && !submission.feedback;
   const showComments =
     canAnnotate || Boolean(submission.feedback) || session.role === Role.ADMIN;
 
@@ -127,8 +128,9 @@ export default async function SubmissionPage({
         />
       ) : (
         <div className="card text-sm text-slate-600">
-          Coach {submission.coach.name} hasn&apos;t reviewed this video yet —
-          you&apos;ll see the feedback here as soon as it&apos;s ready.
+          {isAiCoach
+            ? `${submission.coach.name} is analysing this clip — refresh in a moment.`
+            : `Coach ${submission.coach.name} hasn't reviewed this video yet — you'll see the feedback here as soon as it's ready.`}
         </div>
       )}
 

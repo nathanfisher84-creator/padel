@@ -55,8 +55,8 @@ model CoachProfile {
   monthlyVideoLimit Int      @default(4)
   currency          String   @default("EUR")
   isPublished       Boolean  @default(false)
-  // The platform's built-in AI coach: reviews are generated automatically
-  // and the platform keeps 100% of the payment (no human coach to pay out).
+  // True for the built-in AI coach (Nova): free chat, paid instant reviews
+  // generated automatically; the platform keeps 100% of its payments.
   isAi              Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Nova, the AI padel coach">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0%" stop-color="#1c3a2a"/>
+      <stop offset="100%" stop-color="#0c1c14"/>
+    </radialGradient>
+    <radialGradient id="ball" cx="38%" cy="34%" r="70%">
+      <stop offset="0%" stop-color="#e9ff6b"/>
+      <stop offset="60%" stop-color="#c6f542"/>
+      <stop offset="100%" stop-color="#9bd11f"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e9ff6b"/>
+      <stop offset="100%" stop-color="#6bbf2a"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <!-- orbit ring -->
+  <circle cx="200" cy="196" r="118" fill="none" stroke="url(#ring)" stroke-width="2" opacity="0.35"/>
+  <!-- padel ball -->
+  <circle cx="200" cy="196" r="86" fill="url(#ball)"/>
+  <!-- seams -->
+  <path d="M132 168 C176 196 224 196 268 168" fill="none" stroke="#0c1c14" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <path d="M132 224 C176 196 224 196 268 224" fill="none" stroke="#0c1c14" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <!-- AI sparks -->
+  <g fill="#e9ff6b">
+    <path d="M300 96 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6 z" opacity="0.95"/>
+    <path d="M96 286 l4 11 11 4 -11 4 -4 11 -4 -11 -11 -4 11 -4 z" opacity="0.8"/>
+  </g>
+</svg>

@@ -10,11 +10,7 @@ export const metadata = {
 };
 
 export default async function CoachesPage() {
-  // The instant AI tier leads the directory as the low-cost entry point;
-  // human coaches follow in their usual order.
-  const coaches = (await getPublicCoaches()).sort(
-    (a, b) => Number(b.isAi) - Number(a.isAi)
-  );
+  const coaches = await getPublicCoaches();
 
   return (
     <div>

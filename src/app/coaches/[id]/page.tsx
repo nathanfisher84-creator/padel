@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { formatMoney } from "@/lib/format";
@@ -32,6 +32,9 @@ export default async function CoachDetailPage({
     include: { coachProfile: true },
   });
   if (!coach?.coachProfile?.isPublished) notFound();
+  // The AI coach has its own dedicated page (chat, free flow) — the classic
+  // profile with purchase panels makes no sense for it.
+  if (coach.coachProfile.isAi) redirect("/ai-coach");
   const profile = coach.coachProfile;
 
   const session = await getSession();

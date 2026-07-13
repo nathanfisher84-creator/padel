@@ -167,27 +167,34 @@ Until you verify a sending domain in Resend, leave `EMAIL_FROM` unset — the
 default test sender delivers to your own Resend account address, which is
 enough to try it. `GET /api/health` reports `email` (`resend` or `off`).
 
-## The AI Coach (instant video reviews)
+## Nova, the AI Coach (free chat + paid instant video reviews)
 
-Alongside the human coaches, the marketplace ships with a built-in **PadelPro
-AI Coach** — a cheap, instant tier (€7 one-off / €19 per month, seeded and
-editable in `prisma/seed.ts`) that works exactly like a human coach from the
-player's point of view: browse → buy → upload. The difference is delivery:
-right after upload, Gemini watches the full video and generates the review in
-minutes — a written analysis (strengths, the 3 highest-impact fixes, drills)
-plus **timestamped notes pinned to the exact moments** in the footage, using
-the same analysis workspace human coaches use.
+Alongside the human coaches, the marketplace ships with **Nova**, a built-in
+AI coach with a two-tier funnel:
+
+- **Free chat** (`/ai-coach`): a padel-only coaching chat with a curated
+  knowledge base and guardrails — the lead magnet. Log in and ask anything
+  about technique, tactics or positioning.
+- **Paid instant video reviews** (€7 one-off / €19 per month for 8, seeded
+  and editable in `prisma/seed.ts`): works exactly like a human coach from
+  the player's point of view — buy → upload — but delivery is automated.
+  Right after upload, Gemini watches the **full video** (via the Files API,
+  so complete match videos work, not just short clips) and generates the
+  review in minutes: a written analysis (strengths, the 3 highest-impact
+  fixes, drills) plus **timestamped notes pinned to the exact moments** in
+  the footage, in the same analysis workspace human coaches use.
 
 - **Revenue**: the platform keeps 100% of AI coach payments (there is no
   human coach to pay out); every payment is still recorded in the ledger.
-- **Setup**: set `GEMINI_API_KEY` (same key as photo standardization). The
-  video model defaults to `gemini-2.5-flash`; override with
-  `GEMINI_VIDEO_MODEL`.
+- **Setup**: set `GEMINI_API_KEY` (same key as photo standardization). Model
+  overrides: `GEMINI_VIDEO_MODEL` / `GEMINI_TEXT_MODEL` (both default to
+  `gemini-2.5-flash`).
 - **Without a key**: dev/preview deployments serve a clearly-labelled demo
-  review so the full flow is testable; production returns a friendly
-  "unavailable" error instead.
+  review so the full flow is testable; production reports the AI coach
+  unavailable and hides it from the directory. Dev chat can be exercised
+  with `AI_COACH_FAKE=1`.
 - `GET /api/health` reports `aiCoach` (`gemini`, `demo` or `off`).
-- The AI coach account (`ai@padelpro.local`) is seeded in every environment
+- The AI coach account (`nova@padelpro.ai`) is seeded in every environment
   with a random, unusable password — nobody can log in as it.
 
 ## Standardized coach photos (AI)

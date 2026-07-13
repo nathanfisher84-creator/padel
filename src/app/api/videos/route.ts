@@ -115,6 +115,20 @@ async function createSubmission(
   videoPath: string,
   focusShots: string | null
 ) {
+  const coach = await db.user.findUnique({
+    where: { id: coachId },
+    select: {
+      email: true,
+      name: true,
+      coachProfile: { select: { isAi: true, isPublished: true } },
+    },
+  });
+  if (!coach?.coachProfile?.isPublished) {
+    return NextResponse.json({ error: "Coach not found." }, { status: 404 });
+  }
+
+  // Every review — human or AI — requires a credit or subscription. Nova's
+  // chat is the free tier; watching a full video is the paid one.
   const entitlement = await getEntitlementForCoach(session.id, coachId);
   if (!entitlement) {
     return NextResponse.json(
@@ -143,10 +157,6 @@ async function createSubmission(
   // Notify (best-effort, never fails the upload): a human coach gets the
   // new-video email; an AI submission alerts the owner instead — the AI
   // review itself is kicked off by the player's submission page.
-  const coach = await db.user.findUnique({
-    where: { id: coachId },
-    select: { email: true, name: true, coachProfile: { select: { isAi: true } } },
-  });
   if (coach?.coachProfile?.isAi) {
     await notifyOwnerAiUpload({
       playerName: session.name,

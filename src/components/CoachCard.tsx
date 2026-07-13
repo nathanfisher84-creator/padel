@@ -27,10 +27,13 @@ export type PublicCoach = {
 };
 
 export function CoachCard({ profile }: { profile: PublicCoach }) {
+  const href = profile.isAi ? "/ai-coach" : `/coaches/${profile.userId}`;
   return (
     <Link
-      href={`/coaches/${profile.userId}`}
-      className="card group flex flex-col !p-0 transition hover:-translate-y-0.5 hover:shadow-md"
+      href={href}
+      className={`card group flex flex-col !p-0 transition hover:-translate-y-0.5 hover:shadow-md ${
+        profile.isAi ? "border-ball-500/50 ring-1 ring-ball-500/30" : ""
+      }`}
     >
       <div className="flex-1 p-6">
         <div className="flex items-center gap-4">
@@ -58,8 +61,13 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
             </div>
           )}
           <div className="min-w-0">
-            <h3 className="truncate text-lg font-semibold group-hover:text-court-700">
+            <h3 className="flex items-center gap-2 truncate text-lg font-semibold group-hover:text-court-700">
               {profile.user.name}
+              {profile.isAi && (
+                <span className="badge shrink-0 bg-ball-500/20 text-ball-600">
+                  AI
+                </span>
+              )}
             </h3>
             <p className="stat truncate text-xs uppercase tracking-wide text-slate-600">
               {profile.isAi
@@ -86,7 +94,9 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
               ? "Feedback in minutes"
               : `Replies in ${turnaroundLabel(profile.turnaroundHours)}`}
           </span>
-          {profile.avgRating !== null ? (
+          {profile.isAi ? (
+            <span className="text-ball-600">Chat + video review</span>
+          ) : profile.avgRating !== null ? (
             <span className="text-slate-600">
               <span className="text-ball-600">★</span>{" "}
               {profile.avgRating.toFixed(1)} ({profile.reviewCount})
@@ -99,18 +109,23 @@ export function CoachCard({ profile }: { profile: PublicCoach }) {
       <dl className="stat grid grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 text-sm">
         <div className="px-6 py-3">
           <dt className="text-[11px] uppercase tracking-wide text-slate-600">
-            Video review
+            {profile.isAi ? "AI chat" : "Video review"}
           </dt>
           <dd className="mt-0.5 font-semibold text-court-800">
-            {formatMoney(profile.oneOffPriceCents, profile.currency)}
+            {profile.isAi
+              ? "Free"
+              : formatMoney(profile.oneOffPriceCents, profile.currency)}
           </dd>
         </div>
         <div className="px-6 py-3">
           <dt className="text-[11px] uppercase tracking-wide text-slate-600">
-            Monthly plan
+            {profile.isAi ? "Video review" : "Monthly plan"}
           </dt>
           <dd className="mt-0.5 font-semibold text-court-800">
-            {formatMoney(profile.monthlyPriceCents, profile.currency)}
+            {formatMoney(
+              profile.isAi ? profile.oneOffPriceCents : profile.monthlyPriceCents,
+              profile.currency
+            )}
           </dd>
         </div>
       </dl>

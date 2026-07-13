@@ -46,6 +46,12 @@ export function AnalysisPlayer({
   const [comments, setComments] = useState<AnalysisComment[]>(() =>
     [...initialComments].sort((a, b) => a.timeSeconds - b.timeSeconds)
   );
+  // The server re-sends comments after a router.refresh() (e.g. once the AI
+  // coach finishes its instant review). State initializers only run on first
+  // mount, so sync explicitly — the server is authoritative after a refresh.
+  useEffect(() => {
+    setComments([...initialComments].sort((a, b) => a.timeSeconds - b.timeSeconds));
+  }, [initialComments]);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
