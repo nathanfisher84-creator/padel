@@ -20,6 +20,26 @@ const seedDemo = process.env.SEED_DEMO === "true" || !isProd;
 // before going live.
 const PREVIEW_DEMO = true;
 
+// Canonical profile for the built-in AI coach. Free (zero price), instant,
+// specialised in the beginner + tactics segment.
+const AI_COACH_PROFILE = {
+  photoUrl: "/avatars/nova.svg",
+  isPublished: true,
+  turnaroundHours: 24, // display is overridden to "Instant" for AI coaches
+  languages: "English, Spanish, French",
+  certifications: null as string | null,
+  careerHighlights: null as string | null,
+  headline: "Your instant AI padel coach — free tactics & fundamentals, on tap",
+  bestFor: "beginners & tactics",
+  bio: "I'm Nova, PadelPro's AI coach. Ask me anything about padel — grip, positioning, when to lob, how to hit a bandeja, doubles tactics — and I'll answer instantly, for free. You can also upload a short clip and I'll break it down with timestamped notes. For a deep, human eye on your technique, our pro coaches are one tap away.",
+  location: "Online · instant",
+  experienceYears: 0,
+  oneOffPriceCents: 0,
+  monthlyPriceCents: 0,
+  monthlyVideoLimit: 30,
+  currency: "EUR",
+};
+
 async function main() {
   // Bootstrap a real admin from environment variables when provided (works in
   // any environment, and is the intended way to create the owner in prod).
@@ -38,6 +58,31 @@ async function main() {
     });
     console.log(`Ensured admin account for ${adminEmail}.`);
   }
+
+  // The built-in AI coach ("Nova") is a real product feature, so seed it in
+  // every environment — including production — not just the demo data. It has
+  // no usable password (nobody logs in as it) and is always free.
+  await db.user.upsert({
+    where: { email: "nova@padelpro.ai" },
+    update: {
+      name: "Nova",
+      coachProfile: {
+        upsert: {
+          update: { ...AI_COACH_PROFILE, isPublished: true, isAi: true },
+          create: { ...AI_COACH_PROFILE, isAi: true },
+        },
+      },
+    },
+    create: {
+      email: "nova@padelpro.ai",
+      name: "Nova",
+      // Random, unusable password — the AI coach is never logged into.
+      passwordHash: await bcrypt.hash(`ai-coach-${Date.now()}-${Math.random()}`, 10),
+      role: "COACH",
+      coachProfile: { create: { ...AI_COACH_PROFILE, isAi: true } },
+    },
+  });
+  console.log("Ensured AI coach (Nova).");
 
   const runDemo = seedDemo || PREVIEW_DEMO;
   if (!runDemo) {

@@ -6,6 +6,7 @@ import { Role, SubmissionStatus } from "@/lib/constants";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { RatingForm } from "@/components/RatingForm";
 import { AnalysisPlayer } from "@/components/AnalysisPlayer";
+import { AiReviewTrigger } from "@/components/AiReviewTrigger";
 import { blobUploadsEnabled } from "@/lib/storage";
 import { FOCUS_SHOTS } from "@/lib/constants";
 
@@ -23,7 +24,7 @@ export default async function SubmissionPage({
     where: { id: params.id },
     include: {
       player: true,
-      coach: true,
+      coach: { include: { coachProfile: { select: { isAi: true } } } },
       feedback: true,
       review: true,
       comments: { orderBy: { timeSeconds: "asc" } },
@@ -35,9 +36,11 @@ export default async function SubmissionPage({
   const isCoach = session.id === submission.coachId;
   if (!isPlayer && !isCoach && session.role !== Role.ADMIN) notFound();
 
+  const isAiCoach = Boolean(submission.coach.coachProfile?.isAi);
   // The coach annotates while the review is open; once delivered the notes
-  // become part of the read-only feedback the player sees.
-  const canAnnotate = isCoach && !submission.feedback;
+  // become part of the read-only feedback the player sees. The AI coach writes
+  // its own notes, so there's no human annotation window.
+  const canAnnotate = isCoach && !isAiCoach && !submission.feedback;
   const showComments =
     canAnnotate || Boolean(submission.feedback) || session.role === Role.ADMIN;
 
@@ -113,6 +116,8 @@ export default async function SubmissionPage({
             {submission.feedback.content}
           </p>
         </div>
+      ) : isAiCoach && isPlayer ? (
+        <AiReviewTrigger submissionId={submission.id} />
       ) : isCoach ? (
         <FeedbackForm
           submissionId={submission.id}
@@ -120,8 +125,9 @@ export default async function SubmissionPage({
         />
       ) : (
         <div className="card text-sm text-slate-600">
-          Coach {submission.coach.name} hasn&apos;t reviewed this video yet —
-          you&apos;ll see the feedback here as soon as it&apos;s ready.
+          {isAiCoach
+            ? `${submission.coach.name} is analysing this clip — refresh in a moment.`
+            : `Coach ${submission.coach.name} hasn't reviewed this video yet — you'll see the feedback here as soon as it's ready.`}
         </div>
       )}
 
