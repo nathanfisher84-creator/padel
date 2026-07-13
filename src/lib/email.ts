@@ -31,6 +31,11 @@ function ownerEmail(): string | null {
   return process.env.OWNER_NOTIFY_EMAIL ?? process.env.ADMIN_EMAIL ?? null;
 }
 
+/** Whether owner sale/AI-upload alerts have a destination (for health checks). */
+export function ownerAlertsEnabled(): boolean {
+  return emailEnabled() && Boolean(ownerEmail());
+}
+
 /** Send one email. Never throws; returns whether it was accepted. */
 export async function sendEmail(opts: {
   to: string;
