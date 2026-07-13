@@ -9,7 +9,35 @@ const bodySchema = z.object({
   // Clamp to a sane range: video length is bounded and we never want NaN/∞.
   timeSeconds: z.coerce.number().min(0).max(60 * 60 * 12),
   body: z.string().trim().min(1).max(1000),
+  // Optional telestration payload (JSON string of shapes) — validated and
+  // re-serialised below so only well-formed shape data is ever stored.
+  drawing: z.string().max(150_000).optional(),
 });
+
+const drawingSchema = z
+  .array(
+    z.object({
+      tool: z.enum(["pen", "line", "arrow", "circle"]),
+      color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      points: z
+        .array(z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]))
+        .min(1)
+        .max(800),
+    })
+  )
+  .min(1)
+  .max(120);
+
+/** Parse + validate a drawing payload; null when absent or invalid. */
+function cleanDrawing(raw: string | undefined): string | null {
+  if (!raw) return null;
+  try {
+    const parsed = drawingSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? JSON.stringify(parsed.data) : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Only the owning coach may annotate, and only while the review is still
@@ -65,6 +93,7 @@ export async function POST(
       submissionId: gate.submission.id,
       timeSeconds: parsed.data.timeSeconds,
       body: redactContact(parsed.data.body),
+      drawing: cleanDrawing(parsed.data.drawing),
     },
   });
 
@@ -73,6 +102,7 @@ export async function POST(
       id: comment.id,
       timeSeconds: comment.timeSeconds,
       body: comment.body,
+      drawing: comment.drawing,
     },
   });
 }

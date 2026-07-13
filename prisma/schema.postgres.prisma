@@ -154,6 +154,10 @@ model FeedbackComment {
   submission   VideoSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   timeSeconds  Float
   body         String
+  // Optional telestration: JSON array of shapes (pen/line/arrow/circle) the
+  // coach drew over the paused frame, in coordinates normalised to 0-1 so
+  // they replay at any player size. Validated server-side before storage.
+  drawing      String?
   createdAt    DateTime        @default(now())
 
   @@index([submissionId])
