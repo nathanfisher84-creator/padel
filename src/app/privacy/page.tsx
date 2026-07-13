@@ -30,7 +30,8 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "4. Storage and retention",
     body: [
-      "Data is stored with our hosting providers (application database and video storage). Videos and feedback are kept while your account is active so you can revisit your coaching history.",
+      "Data is stored with our hosting providers (application database and video storage).",
+      "Uploaded video files are automatically deleted 30 days after your feedback is delivered — keep your own copy of the footage if you want it long-term. Your written feedback, timestamped notes and ratings are kept while your account is active so you can revisit your coaching history.",
       "You can request deletion of your account and its content at any time via the contact email in the footer; we remove personal data unless we are legally required to keep it (for example, payment records).",
     ],
   },

@@ -3,15 +3,11 @@ import { unlink } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
 import { SubmissionStatus } from "@/lib/constants";
-import { blobToken, isVercelBlobUrl } from "@/lib/storage";
+import { blobToken, isVercelBlobUrl, VIDEO_RETENTION_DAYS } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-// Keep raw video files this long after the review was delivered, then delete
-// them to keep storage costs flat. The written feedback and timestamped notes
-// are database rows and are kept forever.
-const RETENTION_DAYS = 30;
 const BATCH = 50;
 
 function uploadDir(): string {
@@ -21,7 +17,7 @@ function uploadDir(): string {
 /**
  * Storage retention cron (scheduled daily via vercel.json). Deletes the raw
  * video file of submissions whose review was delivered more than
- * RETENTION_DAYS ago — from Vercel Blob or local disk — and stamps
+ * VIDEO_RETENTION_DAYS ago — from Vercel Blob or local disk — and stamps
  * videoPurgedAt so streams return 410 and the UI explains the removal.
  *
  * Protected by CRON_SECRET (Vercel sends it as a Bearer token). Without the
@@ -43,7 +39,7 @@ export async function GET(req: Request) {
   }
 
   const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - RETENTION_DAYS);
+  cutoff.setDate(cutoff.getDate() - VIDEO_RETENTION_DAYS);
 
   const due = await db.videoSubmission.findMany({
     where: {
@@ -86,6 +82,6 @@ export async function GET(req: Request) {
     ok: true,
     purged,
     remaining: due.length - purged,
-    retentionDays: RETENTION_DAYS,
+    retentionDays: VIDEO_RETENTION_DAYS,
   });
 }
