@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
-import { FOCUS_SHOTS } from "@/lib/constants";
+import { FOCUS_SHOTS, PLAYER_SIDES } from "@/lib/constants";
 import { VIDEO_RETENTION_DAYS } from "@/lib/storage";
 
 export function UploadForm({
@@ -56,6 +56,8 @@ export function UploadForm({
         coachId,
         title: form.get("title"),
         notes: form.get("notes") || undefined,
+        playerOutfit: form.get("playerOutfit"),
+        playerSide: form.get("playerSide") || undefined,
         videoUrl: blob.url,
         focusShots: form.getAll("focusShots").map(String),
       }),
@@ -84,6 +86,38 @@ export function UploadForm({
           placeholder="e.g. Doubles match — struggling with bandeja"
         />
       </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="label" htmlFor="playerOutfit">
+            Which player are you? (what you&rsquo;re wearing)
+          </label>
+          <input
+            className="input"
+            id="playerOutfit"
+            name="playerOutfit"
+            required
+            maxLength={80}
+            placeholder="e.g. black shirt, white cap"
+          />
+        </div>
+        <div>
+          <label className="label" htmlFor="playerSide">
+            Where do you start? (at the first point)
+          </label>
+          <select className="input" id="playerSide" name="playerSide" defaultValue="">
+            <option value="">Not sure / solo drill video</option>
+            {PLAYER_SIDES.map((side) => (
+              <option key={side.key} value={side.key}>
+                {side.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <p className="-mt-2 text-xs text-slate-500">
+        With four players on court, this is how your coach knows exactly who to
+        analyse — the feedback will be about you and only you.
+      </p>
       <fieldset>
         <legend className="label">Which shots should the coach focus on?</legend>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -125,7 +159,7 @@ export function UploadForm({
             identical and your upload is ~4× faster (a full match fits in 1 GB)
           </li>
           <li>For shot analysis: 1–2 minutes of repetitions; for tactics: 10–20 minutes of match play</li>
-          <li>Make sure you are identifiable (say your shirt colour in the notes)</li>
+          <li>Wear something distinct from the other players — it makes the analysis sharper</li>
         </ul>
       </div>
       <div>

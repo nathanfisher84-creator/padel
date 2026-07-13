@@ -8,7 +8,7 @@ import { RatingForm } from "@/components/RatingForm";
 import { AnalysisPlayer } from "@/components/AnalysisPlayer";
 import { AiReviewRunner } from "@/components/AiReviewRunner";
 import { blobUploadsEnabled, VIDEO_RETENTION_DAYS } from "@/lib/storage";
-import { FOCUS_SHOTS } from "@/lib/constants";
+import { FOCUS_SHOTS, playerSideLabel } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +115,20 @@ export default async function SubmissionPage({
             </p>
           )}
         </>
+      )}
+
+      {submission.playerOutfit && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="eyebrow text-court-600">
+            {isPlayer ? "You are" : "The player is"}
+          </span>
+          <span className="badge bg-court-100 text-court-800">
+            {submission.playerOutfit}
+            {playerSideLabel(submission.playerSide)
+              ? ` · ${playerSideLabel(submission.playerSide)}`
+              : ""}
+          </span>
+        </div>
       )}
 
       {submission.focusShots && (

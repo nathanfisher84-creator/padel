@@ -106,6 +106,10 @@ model VideoSubmission {
   coach      User     @relation("CoachSubmissions", fields: [coachId], references: [id], onDelete: Cascade)
   title      String
   notes      String?
+  // Who the paying player is in the footage, so the reviewer (human or AI)
+  // analyses the right person: what they're wearing + where they start.
+  playerOutfit String?
+  playerSide   String? // see PLAYER_SIDES
   // Comma-separated shot keys the player wants analysed (see FOCUS_SHOTS).
   focusShots String?
   videoPath  String

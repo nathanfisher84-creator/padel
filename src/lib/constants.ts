@@ -49,6 +49,20 @@ export const FOCUS_SHOTS = [
 ] as const;
 export const FOCUS_SHOT_KEYS = FOCUS_SHOTS.map((s) => s.key);
 
+// Where the paying player starts in the footage, so the reviewer knows who
+// to watch on a four-player court.
+export const PLAYER_SIDES = [
+  { key: "near-left", label: "Nearest the camera, left side" },
+  { key: "near-right", label: "Nearest the camera, right side" },
+  { key: "far-left", label: "Far side of the net, left" },
+  { key: "far-right", label: "Far side of the net, right" },
+] as const;
+export const PLAYER_SIDE_KEYS = PLAYER_SIDES.map((s) => s.key);
+export function playerSideLabel(key: string | null | undefined): string | null {
+  if (!key) return null;
+  return PLAYER_SIDES.find((s) => s.key === key)?.label ?? null;
+}
+
 // Response times a coach can commit to.
 export const TURNAROUND_OPTIONS = [
   { hours: 24, label: "24 hours" },
