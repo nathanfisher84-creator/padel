@@ -7,13 +7,34 @@ export function platformFeePercent(): number {
   return raw;
 }
 
-/** Split an amount into the platform fee and the coach's share. */
-export function splitRevenue(amountCents: number): {
+/**
+ * Split an amount into the platform fee and the coach's share. A per-coach
+ * promotional rate (e.g. the founding-coach programme) overrides the global
+ * percentage when set.
+ */
+export function splitRevenue(
+  amountCents: number,
+  feePercentOverride?: number | null
+): {
   platformFeeCents: number;
   coachCents: number;
 } {
-  const platformFeeCents = Math.round((amountCents * platformFeePercent()) / 100);
+  const percent =
+    feePercentOverride != null &&
+    Number.isInteger(feePercentOverride) &&
+    feePercentOverride >= 0 &&
+    feePercentOverride <= 100
+      ? feePercentOverride
+      : platformFeePercent();
+  const platformFeeCents = Math.round((amountCents * percent) / 100);
   return { platformFeeCents, coachCents: amountCents - platformFeeCents };
+}
+
+/** The promotional platform fee applied when a coach is marked "founding". */
+export function foundingFeePercent(): number {
+  const raw = Number(process.env.FOUNDING_FEE_PERCENT ?? "10");
+  if (!Number.isInteger(raw) || raw < 0 || raw > 100) return 10;
+  return raw;
 }
 
 /** Stripe is optional: without keys the app runs in demo-payment mode. */

@@ -129,6 +129,11 @@ export default async function CoachDetailPage({
                   Instant AI review
                 </span>
               )}
+              {profile.isFounding && !isAi && (
+                <span className="badge bg-amber-100 text-amber-700">
+                  ★ Founding coach
+                </span>
+              )}
             </div>
             <p className="text-slate-600">
               {isAi

@@ -10,18 +10,19 @@ import {
 /**
  * Compute the revenue split for a coach. The platform's AI coach has no
  * human to pay out, so the platform keeps 100%; everyone else gets the
- * standard PLATFORM_FEE_PERCENT split.
+ * standard PLATFORM_FEE_PERCENT split — unless the coach carries a
+ * promotional per-coach rate (founding-coach programme).
  */
 async function splitFor(coachId: string, amountCents: number) {
   const profile = await db.coachProfile.findUnique({
     where: { userId: coachId },
-    select: { isAi: true },
+    select: { isAi: true, feePercentOverride: true },
   });
   const isAi = Boolean(profile?.isAi);
   if (isAi) {
     return { platformFeeCents: amountCents, coachCents: 0, isAi };
   }
-  return { ...splitRevenue(amountCents), isAi };
+  return { ...splitRevenue(amountCents, profile?.feePercentOverride), isAi };
 }
 
 /** Owner sale alert (best-effort — a lost email must not lose a payment). */

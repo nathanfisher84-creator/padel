@@ -28,6 +28,7 @@ export async function getPublicCoaches(take?: number): Promise<PublicCoach[]> {
         currency: true,
         turnaroundHours: true,
         isAi: true,
+        isFounding: true,
         user: { select: { name: true } },
       },
       // Humans first: the homepage's featured roster (take 3) should always
