@@ -66,9 +66,20 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(jsonResponse);
   } catch (e) {
+    const message = e instanceof Error ? e.message : "Upload failed.";
+    // Surface the real cause in the runtime logs — the browser only shows a
+    // generic "failed to retrieve the client token" for these failures.
+    console.error("upload-token failed:", message);
+    // Client uploads need an actual read-write token: the SDK's OIDC
+    // fallback covers server-side calls only, not minting client tokens.
+    const misconfigured = message.includes("No read-write token");
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Upload failed." },
-      { status: 400 }
+      {
+        error: misconfigured
+          ? "Uploads are temporarily unavailable while we finish setting up storage — please try again soon."
+          : message,
+      },
+      { status: misconfigured ? 503 : 400 }
     );
   }
 }
