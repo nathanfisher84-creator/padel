@@ -161,6 +161,13 @@ export default async function RootLayout({
               </span>
               <span className="eyebrow">Improve your game, one video at a time</span>
             </div>
+            {/* Legal-entity disclosure: payment providers (e.g. Stripe KYC)
+                match the website to the licensed entity via this line. */}
+            <p className="mx-auto max-w-6xl px-4 pb-5 text-center text-[11px] leading-relaxed text-court-400/80 sm:text-left">
+              PadelPro is operated by Hello Maya Events FZ-LLC, Licence No.
+              17007155, Ras Al Khaimah Economic Zone (RAKEZ), Ras Al Khaimah,
+              United Arab Emirates.
+            </p>
           </div>
         </footer>
       </body>
