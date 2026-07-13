@@ -114,8 +114,18 @@ async function createSubmission(
   videoPath: string,
   focusShots: string | null
 ) {
-  const entitlement = await getEntitlementForCoach(session.id, coachId);
-  if (!entitlement) {
+  // The AI coach is free: no credit or subscription required.
+  const coach = await db.user.findUnique({
+    where: { id: coachId },
+    include: { coachProfile: { select: { isAi: true, isPublished: true } } },
+  });
+  if (!coach?.coachProfile?.isPublished) {
+    return NextResponse.json({ error: "Coach not found." }, { status: 404 });
+  }
+  const isAi = coach.coachProfile.isAi;
+
+  const entitlement = isAi ? null : await getEntitlementForCoach(session.id, coachId);
+  if (!isAi && !entitlement) {
     return NextResponse.json(
       {
         error:
@@ -135,7 +145,7 @@ async function createSubmission(
       videoPath,
       status: SubmissionStatus.AWAITING_FEEDBACK,
       // A one-off credit is consumed by linking the payment to this submission.
-      paymentId: entitlement.source === "credit" ? entitlement.paymentId : null,
+      paymentId: entitlement?.source === "credit" ? entitlement.paymentId : null,
     },
   });
 

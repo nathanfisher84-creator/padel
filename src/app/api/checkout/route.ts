@@ -44,6 +44,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Coach not found." }, { status: 404 });
   }
   const profile = coach.coachProfile;
+  if (profile.isAi) {
+    return NextResponse.json(
+      { error: "The AI coach is free — no purchase needed." },
+      { status: 400 }
+    );
+  }
   const amountCents =
     plan === "one_off" ? profile.oneOffPriceCents : profile.monthlyPriceCents;
 

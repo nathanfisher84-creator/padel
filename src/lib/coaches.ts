@@ -1,19 +1,23 @@
 import { db } from "@/lib/db";
 import type { PublicCoach } from "@/components/CoachCard";
+import { aiCoachEnabled } from "@/lib/aiCoach";
 
 /**
  * Published coaches with their rating aggregates, shaped as the
- * client-safe PublicCoach (never the full User row).
+ * client-safe PublicCoach (never the full User row). The AI coach is only
+ * listed when its engine is actually configured — never advertise a dead
+ * feature.
  */
 export async function getPublicCoaches(take?: number): Promise<PublicCoach[]> {
   const [profiles, ratings] = await Promise.all([
     db.coachProfile.findMany({
-      where: { isPublished: true },
+      where: { isPublished: true, ...(aiCoachEnabled() ? {} : { isAi: false }) },
       select: {
         id: true,
         userId: true,
         headline: true,
         bestFor: true,
+        isAi: true,
         bio: true,
         location: true,
         experienceYears: true,
@@ -35,12 +39,15 @@ export async function getPublicCoaches(take?: number): Promise<PublicCoach[]> {
   ]);
 
   const byCoach = new Map(ratings.map((r) => [r.coachId, r]));
-  return profiles.map((p) => {
-    const agg = byCoach.get(p.userId);
-    return {
-      ...p,
-      avgRating: agg?._avg.rating ?? null,
-      reviewCount: agg?._count.rating ?? 0,
-    };
-  });
+  return profiles
+    .map((p) => {
+      const agg = byCoach.get(p.userId);
+      return {
+        ...p,
+        avgRating: agg?._avg.rating ?? null,
+        reviewCount: agg?._count.rating ?? 0,
+      };
+    })
+    // Surface the free AI coach first — it's the natural entry point.
+    .sort((a, b) => Number(b.isAi) - Number(a.isAi));
 }

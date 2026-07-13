@@ -38,6 +38,9 @@ model CoachProfile {
   headline          String
   // Short "best for …" tag surfaced on coach cards to aid the player's choice.
   bestFor           String?
+  // True for the built-in AI coach: free, instant, powered by the AI engine
+  // rather than a human. Never charged; the platform keeps 100% of any revenue.
+  isAi              Boolean  @default(false)
   bio               String
   location          String?
   experienceYears   Int      @default(0)
