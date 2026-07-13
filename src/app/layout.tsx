@@ -45,6 +45,17 @@ export const metadata: Metadata = {
     images: [{ url: "/og.png", width: 1200, height: 630 }],
   },
   twitter: { card: "summary_large_image" },
+  // Installed-app behaviour (Add to Home Screen): standalone, titled, and
+  // with the status bar blending into the dark top banner on iOS.
+  appleWebApp: {
+    capable: true,
+    title: "PadelPro",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport = {
+  themeColor: "#10241a",
 };
 
 export default async function RootLayout({
