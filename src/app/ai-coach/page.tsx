@@ -6,7 +6,9 @@ import { getEntitlementForCoach } from "@/lib/entitlements";
 import { formatMoney } from "@/lib/format";
 import { Role } from "@/lib/constants";
 import { getAiCoach, aiCoachEnabled, AI_COACH_NAME } from "@/lib/aiCoach";
+import { aiPromoCode } from "@/lib/config";
 import { AiCoachChat } from "@/components/AiCoachChat";
+import { PromoCodeForm } from "@/components/PromoCodeForm";
 import { PurchasePanel } from "@/components/PurchasePanel";
 
 export const dynamic = "force-dynamic";
@@ -89,6 +91,9 @@ export default async function AiCoachPage() {
                   loggedIn={Boolean(session)}
                   isPlayer={isPlayer}
                 />
+                {aiPromoCode() && (!session || isPlayer) && (
+                  <PromoCodeForm loggedIn={Boolean(session)} />
+                )}
               </div>
             )}
           </div>
