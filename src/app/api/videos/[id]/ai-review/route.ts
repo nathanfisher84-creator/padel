@@ -87,6 +87,10 @@ export async function POST(
         focusShots,
         playerOutfit: submission.playerOutfit,
         playerSide: playerSideLabel(submission.playerSide),
+        playerRef: {
+          point: submission.playerRefPoint,
+          image: submission.playerRefImage,
+        },
       });
       if (!generated) throw new Error("AI review unexpectedly unavailable.");
       result = generated;

@@ -129,6 +129,14 @@ export default async function SubmissionPage({
           <span className="eyebrow text-court-600">
             {isPlayer ? "You are" : "The player is"}
           </span>
+          {submission.playerRefImage && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={submission.playerRefImage}
+              alt={isPlayer ? "You, from the video's first frame" : "The player, from the video's first frame"}
+              className="h-12 w-auto rounded-md border border-court-200"
+            />
+          )}
           <span className="badge bg-court-100 text-court-800">
             {submission.playerOutfit}
             {playerSideLabel(submission.playerSide)

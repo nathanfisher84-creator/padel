@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 import { FOCUS_SHOTS, PLAYER_SIDES } from "@/lib/constants";
 import { VIDEO_RETENTION_DAYS } from "@/lib/storage";
+import { PlayerTagger, type PlayerRef } from "@/components/PlayerTagger";
 
 export function UploadForm({
   coaches,
@@ -17,12 +18,18 @@ export function UploadForm({
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [playerRef, setPlayerRef] = useState<PlayerRef | null>(null);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     const form = new FormData(e.currentTarget);
+    if (playerRef) {
+      form.set("playerRefPoint", `${playerRef.x},${playerRef.y}`);
+      form.set("playerRefImage", playerRef.image);
+    }
     try {
       const res = useBlobStorage
         ? await submitViaBlob(form)
@@ -58,6 +65,8 @@ export function UploadForm({
         notes: form.get("notes") || undefined,
         playerOutfit: form.get("playerOutfit"),
         playerSide: form.get("playerSide") || undefined,
+        playerRefPoint: form.get("playerRefPoint") || undefined,
+        playerRefImage: form.get("playerRefImage") || undefined,
         videoUrl: blob.url,
         focusShots: form.getAll("focusShots").map(String),
       }),
@@ -171,7 +180,16 @@ export function UploadForm({
           type="file"
           accept="video/mp4,video/quicktime,video/webm,video/x-msvideo"
           required
+          onChange={(e) => {
+            setVideoFile(e.currentTarget.files?.[0] ?? null);
+            setPlayerRef(null);
+          }}
         />
+        {videoFile && (
+          <div className="mt-3">
+            <PlayerTagger file={videoFile} onChange={setPlayerRef} />
+          </div>
+        )}
         <p className="mt-2 text-xs text-slate-500">
           Heads up: the video file is deleted {VIDEO_RETENTION_DAYS} days after
           your feedback is delivered. Your written feedback and timestamped
