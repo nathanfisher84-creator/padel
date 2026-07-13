@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { aiPromoCode } from "@/lib/config";
+import { aiPromoCode, aiPromoReviewCount } from "@/lib/config";
 import { Role, PaymentKind, PaymentStatus } from "@/lib/constants";
 
 const bodySchema = z.object({
@@ -10,12 +10,15 @@ const bodySchema = z.object({
 });
 
 /**
- * Redeem the testing-phase promo code for one free AI video review.
+ * Redeem the testing-phase promo code for a batch of free AI video reviews
+ * (aiPromoReviewCount, default 20).
  *
- * A redemption is recorded as a zero-amount PAID one-off payment to the AI
- * coach, so it flows through the normal entitlement machinery (upload picker,
- * credit consumption, dashboards) with no special cases. The unique stripeRef
- * `promo:<CODE>:<playerId>` makes it one redemption per player per code.
+ * Each credit is a zero-amount PAID one-off payment to the AI coach, so it
+ * flows through the normal entitlement machinery (upload picker, credit
+ * consumption, dashboards) with no special cases. Credit i carries the unique
+ * stripeRef `promo:<CODE>:<playerId>[:i]`, so re-applying the code never
+ * duplicates credits — it only tops a player up to the full batch (which also
+ * upgrades players who redeemed back when the code granted a single review).
  */
 export async function POST(req: Request) {
   const session = await getSession();
@@ -56,30 +59,41 @@ export async function POST(req: Request) {
     );
   }
 
-  try {
-    await db.payment.create({
-      data: {
-        playerId: session.id,
-        coachId: aiCoach.userId,
-        kind: PaymentKind.ONE_OFF,
-        amountCents: 0,
-        platformFeeCents: 0,
-        coachCents: 0,
-        currency: aiCoach.currency,
-        status: PaymentStatus.PAID,
-        stripeRef: `promo:${activeCode}:${session.id}`,
-      },
-    });
-  } catch (err) {
-    // Unique stripeRef: this player already redeemed this code.
-    if ((err as { code?: string })?.code === "P2002") {
-      return NextResponse.json(
-        { error: "You've already used this code — check your dashboard for the credit." },
-        { status: 409 }
-      );
+  let granted = 0;
+  for (let i = 1; i <= aiPromoReviewCount(); i++) {
+    // Credit 1 keeps the legacy suffix-less ref so earlier single-credit
+    // redemptions are recognised rather than duplicated.
+    const ref =
+      i === 1
+        ? `promo:${activeCode}:${session.id}`
+        : `promo:${activeCode}:${session.id}:${i}`;
+    try {
+      await db.payment.create({
+        data: {
+          playerId: session.id,
+          coachId: aiCoach.userId,
+          kind: PaymentKind.ONE_OFF,
+          amountCents: 0,
+          platformFeeCents: 0,
+          coachCents: 0,
+          currency: aiCoach.currency,
+          status: PaymentStatus.PAID,
+          stripeRef: ref,
+        },
+      });
+      granted++;
+    } catch (err) {
+      // Unique stripeRef: this credit already exists — skip, keep going.
+      if ((err as { code?: string })?.code !== "P2002") throw err;
     }
-    throw err;
   }
 
-  return NextResponse.json({ ok: true });
+  if (granted === 0) {
+    return NextResponse.json(
+      { error: "You've already used this code — check your dashboard for the credits." },
+      { status: 409 }
+    );
+  }
+
+  return NextResponse.json({ ok: true, granted });
 }

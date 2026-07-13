@@ -29,7 +29,10 @@ export function PromoCodeForm({ loggedIn }: { loggedIn: boolean }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "That code didn't work.");
-      setMessage({ ok: true, text: "Code applied — you have a free AI review!" });
+      setMessage({
+        ok: true,
+        text: `Code applied — ${data.granted ?? ""} free AI video reviews added!`,
+      });
       router.refresh();
     } catch (err) {
       setMessage({

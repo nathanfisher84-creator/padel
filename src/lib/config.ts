@@ -36,10 +36,17 @@ export function appUrl(): string {
   return process.env.APP_URL ?? "http://localhost:3000";
 }
 
+/** How many free AI video reviews one promo redemption grants. */
+export function aiPromoReviewCount(): number {
+  const raw = Number(process.env.AI_PROMO_REVIEWS ?? "20");
+  if (!Number.isInteger(raw) || raw < 1 || raw > 100) return 20;
+  return raw;
+}
+
 /**
- * Testing-phase promo code: redeeming it grants one free AI video review
- * (a zero-amount credit). Override with AI_PROMO_CODE to rotate the code,
- * or set AI_PROMO_CODE=off to disable redemptions entirely.
+ * Testing-phase promo code: redeeming it grants aiPromoReviewCount() free AI
+ * video reviews (zero-amount credits). Override with AI_PROMO_CODE to rotate
+ * the code, or set AI_PROMO_CODE=off to disable redemptions entirely.
  */
 export function aiPromoCode(): string | null {
   const raw = (process.env.AI_PROMO_CODE ?? "NOVAFREE").trim().toUpperCase();
