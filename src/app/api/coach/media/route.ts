@@ -95,7 +95,7 @@ export async function POST(req: Request) {
     }
     if (video.size === 0 || video.size > MAX_VIDEO_BYTES) {
       return NextResponse.json(
-        { error: "Intro video must be under 500 MB." },
+        { error: "Intro video must be under 1 GB." },
         { status: 400 }
       );
     }

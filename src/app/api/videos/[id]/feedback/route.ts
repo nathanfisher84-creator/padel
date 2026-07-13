@@ -79,7 +79,7 @@ export async function POST(
       }
       if (!VIDEO_CONTENT_TYPES.includes(file.type) || file.size > MAX_VIDEO_BYTES) {
         return NextResponse.json(
-          { error: "Video must be MP4, MOV, WEBM or AVI, under 500 MB." },
+          { error: "Video must be MP4, MOV, WEBM or AVI, under 1 GB." },
           { status: 400 }
         );
       }

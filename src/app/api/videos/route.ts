@@ -85,7 +85,7 @@ async function createFromMultipart(req: Request, session: SessionUser) {
   }
   if (file.size === 0 || file.size > MAX_VIDEO_BYTES) {
     return NextResponse.json(
-      { error: "Video must be between 1 byte and 500 MB." },
+      { error: "Video must be between 1 byte and 1 GB." },
       { status: 400 }
     );
   }

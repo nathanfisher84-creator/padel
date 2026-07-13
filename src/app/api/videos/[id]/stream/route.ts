@@ -43,6 +43,13 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  if (submission.videoPurgedAt) {
+    return NextResponse.json(
+      { error: "This video was removed after the review was delivered." },
+      { status: 410 }
+    );
+  }
+
   // Blob-stored videos (Vercel) live at an unguessable CDN URL; after the
   // access check above, hand the browser off to it rather than proxying
   // hundreds of megabytes through a serverless function.

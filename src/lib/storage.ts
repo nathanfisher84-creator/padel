@@ -59,7 +59,10 @@ export const VIDEO_CONTENT_TYPES = [
   "video/x-msvideo",
 ];
 
-export const MAX_VIDEO_BYTES = 500 * 1024 * 1024; // 500 MB
+// 1 GB — roughly a full match filmed at 1080p. The AI pipeline buffers the
+// whole file in a serverless function on its way to Gemini, so keep this
+// at or below ~1 GB unless that path is converted to streaming.
+export const MAX_VIDEO_BYTES = 1024 * 1024 * 1024;
 
 // Coach profile media
 export const IMAGE_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"];

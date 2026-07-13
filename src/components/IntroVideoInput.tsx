@@ -34,7 +34,7 @@ export function IntroVideoInput({
       return;
     }
     if (file.size > MAX_VIDEO_BYTES) {
-      setError("Video must be under 500 MB.");
+      setError("Video must be under 1 GB.");
       return;
     }
     let duration: number;
