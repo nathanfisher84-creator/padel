@@ -50,9 +50,9 @@ export function aiReviewEnabled(): boolean {
 }
 
 /** Chat model id; overridable so a rename needs no code change. */
-const TEXT_MODEL = () => process.env.GEMINI_TEXT_MODEL ?? "gemini-2.5-flash";
+const TEXT_MODEL = () => process.env.GEMINI_TEXT_MODEL ?? "gemini-3.5-flash";
 /** Video-analysis model id (video-capable). */
-const VIDEO_MODEL = () => process.env.GEMINI_VIDEO_MODEL ?? "gemini-2.5-flash";
+const VIDEO_MODEL = () => process.env.GEMINI_VIDEO_MODEL ?? "gemini-3.5-flash";
 
 // ---------------------------------------------------------------------------
 // Knowledge base + guardrails
