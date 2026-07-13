@@ -767,6 +767,11 @@ function buildReviewPrompt(
     "  the observation is visible. Each note is 1-2 sentences about that moment.",
     "  Spread them across the video and tie them to your improvements where",
     "  possible; include at least one note highlighting something they did WELL.",
+    "  ATTRIBUTION CHECK, before writing EVERY note: look at that exact moment",
+    "  and confirm the person performing the action IS the target player (use",
+    "  the identification markers). In fast exchanges do NOT credit 'you' with",
+    "  a shot their partner hit — the flashiest shot is often the partner's.",
+    "  If you cannot tell who struck the ball at a moment, skip that moment.",
     "",
     "Never include contact details, links or social handles."
   );
@@ -781,7 +786,7 @@ async function uploadVideoToGemini(
   apiKey: string,
   bytes: Buffer,
   mimeType: string
-): Promise<{ uri: string; mimeType: string }> {
+): Promise<{ uri: string; mimeType: string; durationSeconds: number | null }> {
   const start = await fetch(`${GEMINI_BASE}/upload/v1beta/files`, {
     method: "POST",
     headers: {
@@ -820,7 +825,10 @@ async function uploadVideoToGemini(
   if (!name || !uri) throw new Error("Gemini upload returned no file reference.");
 
   // Video needs server-side processing before it can be used in a prompt.
+  // The processed file metadata also reports the video's duration, which we
+  // use to pick a sampling frame rate for the analysis.
   let state = uploaded.file?.state ?? "PROCESSING";
+  let durationSeconds: number | null = null;
   const deadline = Date.now() + 4 * 60 * 1000;
   while (state === "PROCESSING") {
     if (Date.now() > deadline) {
@@ -831,12 +839,34 @@ async function uploadVideoToGemini(
       headers: { "x-goog-api-key": apiKey },
     });
     if (!poll.ok) throw new Error(`Gemini file status check failed (${poll.status}).`);
-    state = ((await poll.json()) as { state?: string }).state ?? "FAILED";
+    const info = (await poll.json()) as {
+      state?: string;
+      videoMetadata?: { videoDuration?: string };
+    };
+    state = info.state ?? "FAILED";
+    const raw = info.videoMetadata?.videoDuration; // e.g. "30.034467s"
+    if (raw) {
+      const secs = Number.parseFloat(raw);
+      if (Number.isFinite(secs) && secs > 0) durationSeconds = secs;
+    }
   }
   if (state !== "ACTIVE") {
     throw new Error("Gemini could not process this video format.");
   }
-  return { uri, mimeType: uploaded.file?.mimeType ?? mimeType };
+  return { uri, mimeType: uploaded.file?.mimeType ?? mimeType, durationSeconds };
+}
+
+/**
+ * Sampling frame rate for the ANALYSIS pass, by video length. The default
+ * 1fps loses who-hit-what during fast exchanges — the cause of shots being
+ * mis-attributed between partners — so short videos get denser sampling
+ * where the token budget allows. Long videos stay at the default (null).
+ */
+function analysisFps(durationSeconds: number | null): number | null {
+  if (!durationSeconds) return null;
+  if (durationSeconds <= 4 * 60) return 3;
+  if (durationSeconds <= 12 * 60) return 2;
+  return null;
 }
 
 /** Load the submission's video bytes from Blob storage or local disk. */
@@ -951,7 +981,12 @@ export async function generateAiReview(
           {
             parts: [
               ...playerRefParts(input),
-              { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
+              {
+                fileData: { fileUri: file.uri, mimeType: file.mimeType },
+                ...(analysisFps(file.durationSeconds)
+                  ? { videoMetadata: { fps: analysisFps(file.durationSeconds) } }
+                  : {}),
+              },
               { text: buildReviewPrompt(input, confirmedId) },
             ],
           },
@@ -1080,7 +1115,10 @@ function buildPrescanPrompt(
     "  (\"Your bandeja contact is behind your head here — set the racquet",
     "  earlier\"), 1-2 sentences, specific to what is visible at that moment.",
     "  Include at least one genuinely positive moment. The coach will accept,",
-    "  edit or discard each one.",
+    "  edit or discard each one. ATTRIBUTION CHECK before every suggestion:",
+    "  confirm the person performing the action at that moment IS the target",
+    "  (use the identification markers); never credit the target with a shot",
+    "  their partner hit, and skip moments where you cannot tell.",
     "",
     "Never include contact details, links or social handles."
   );
@@ -1134,7 +1172,12 @@ export async function generateAiPrescan(
           {
             parts: [
               ...playerRefParts(input),
-              { fileData: { fileUri: file.uri, mimeType: file.mimeType } },
+              {
+                fileData: { fileUri: file.uri, mimeType: file.mimeType },
+                ...(analysisFps(file.durationSeconds)
+                  ? { videoMetadata: { fps: analysisFps(file.durationSeconds) } }
+                  : {}),
+              },
               { text: buildPrescanPrompt(input, confirmedId) },
             ],
           },
