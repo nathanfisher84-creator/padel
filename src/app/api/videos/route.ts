@@ -7,7 +7,13 @@ import { db } from "@/lib/db";
 import { getSession, type SessionUser } from "@/lib/auth";
 import { getEntitlementForCoach } from "@/lib/entitlements";
 import { reviewDueAt } from "@/lib/deadlines";
-import { Role, SubmissionStatus, FOCUS_SHOT_KEYS } from "@/lib/constants";
+import { redactContact } from "@/lib/redact";
+import {
+  Role,
+  SubmissionStatus,
+  FOCUS_SHOT_KEYS,
+  PLAYER_SIDE_KEYS,
+} from "@/lib/constants";
 import {
   isVercelBlobUrl,
   MAX_VIDEO_BYTES,
@@ -23,6 +29,11 @@ const blobBodySchema = z.object({
   coachId: z.string().min(1),
   title: z.string().trim().min(1).max(200),
   notes: z.string().trim().max(5000).optional(),
+  playerOutfit: z.string().trim().min(1).max(80),
+  playerSide: z
+    .string()
+    .refine((v) => (PLAYER_SIDE_KEYS as string[]).includes(v))
+    .optional(),
   videoUrl: z.string().url(),
   focusShots: z.array(z.string()).max(12).optional(),
 });
@@ -63,7 +74,10 @@ async function createFromBlob(req: Request, session: SessionUser) {
   if (!isVercelBlobUrl(videoUrl)) {
     return NextResponse.json({ error: "Invalid video URL." }, { status: 400 });
   }
-  return createSubmission(session, coachId, title, notes ?? "", videoUrl, focusShots);
+  return createSubmission(session, coachId, title, notes ?? "", videoUrl, focusShots, {
+    outfit: parsed.data.playerOutfit,
+    side: parsed.data.playerSide ?? null,
+  });
 }
 
 async function createFromMultipart(req: Request, session: SessionUser) {
@@ -76,11 +90,14 @@ async function createFromMultipart(req: Request, session: SessionUser) {
   const title = String(form.get("title") ?? "").trim();
   const notes = String(form.get("notes") ?? "").trim();
   const focusShots = cleanShots(form.getAll("focusShots").map(String));
+  const playerOutfit = String(form.get("playerOutfit") ?? "").trim().slice(0, 80);
+  const rawSide = String(form.get("playerSide") ?? "");
+  const playerSide = (PLAYER_SIDE_KEYS as string[]).includes(rawSide) ? rawSide : null;
   const file = form.get("video");
 
-  if (!coachId || !title || !(file instanceof File)) {
+  if (!coachId || !title || !playerOutfit || !(file instanceof File)) {
     return NextResponse.json(
-      { error: "A coach, a title and a video file are required." },
+      { error: "A coach, a title, who you are in the video, and a video file are required." },
       { status: 400 }
     );
   }
@@ -105,7 +122,10 @@ async function createFromMultipart(req: Request, session: SessionUser) {
     Buffer.from(await file.arrayBuffer())
   );
 
-  return createSubmission(session, coachId, title, notes, filename, focusShots);
+  return createSubmission(session, coachId, title, notes, filename, focusShots, {
+    outfit: playerOutfit,
+    side: playerSide,
+  });
 }
 
 async function createSubmission(
@@ -114,7 +134,8 @@ async function createSubmission(
   title: string,
   notes: string,
   videoPath: string,
-  focusShots: string | null
+  focusShots: string | null,
+  identity: { outfit: string; side: string | null }
 ) {
   const coach = await db.user.findUnique({
     where: { id: coachId },
@@ -149,6 +170,8 @@ async function createSubmission(
       coachId,
       title,
       notes: notes || null,
+      playerOutfit: redactContact(identity.outfit),
+      playerSide: identity.side,
       focusShots,
       videoPath,
       status: SubmissionStatus.AWAITING_FEEDBACK,

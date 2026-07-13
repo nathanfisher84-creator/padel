@@ -3,7 +3,12 @@ import path from "path";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { demoPaymentsAllowed } from "@/lib/config";
-import { Role, SubmissionStatus, FOCUS_SHOTS } from "@/lib/constants";
+import {
+  Role,
+  SubmissionStatus,
+  FOCUS_SHOTS,
+  playerSideLabel,
+} from "@/lib/constants";
 import { redactContact } from "@/lib/redact";
 import { notifyPlayerFeedbackDelivered } from "@/lib/email";
 import {
@@ -80,6 +85,8 @@ export async function POST(
         title: submission.title,
         notes: submission.notes,
         focusShots,
+        playerOutfit: submission.playerOutfit,
+        playerSide: playerSideLabel(submission.playerSide),
       });
       if (!generated) throw new Error("AI review unexpectedly unavailable.");
       result = generated;

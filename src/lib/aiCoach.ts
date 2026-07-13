@@ -207,6 +207,10 @@ export type AiReviewInput = {
   notes: string | null;
   /** Human-readable focus shot labels, e.g. ["Bandeja", "Volleys"]. */
   focusShots: string[];
+  /** Who the paying player is: what they're wearing in the footage. */
+  playerOutfit: string | null;
+  /** Human-readable starting position, e.g. "Nearest the camera, left side". */
+  playerSide: string | null;
 };
 
 const MIME_BY_EXT: Record<string, string> = {
@@ -275,11 +279,27 @@ function buildReviewPrompt(input: AiReviewInput): string {
     "",
     `The player titled the video: "${input.title}".`,
   ];
+  if (input.playerOutfit) {
+    const where = input.playerSide
+      ? ` They start the video positioned: ${input.playerSide}.`
+      : "";
+    lines.push(
+      "",
+      "WHO TO ANALYSE — this is critical. There may be up to four players on",
+      `court. The paying player — the ONLY one you are reviewing — is wearing: ${input.playerOutfit}.${where}`,
+      "Track this player throughout the footage. Every strength, improvement,",
+      "drill and timestamped note must be about THIS player. Mention other",
+      "players only as context (e.g. their partner's positioning relative to",
+      "them, or opponents' shots they had to deal with).",
+      "If at any point you cannot confidently identify this player, or the",
+      "description matches more than one person, say so explicitly in the",
+      "summary and review only the moments where you are certain — never guess",
+      "and never silently review a different player.",
+      ""
+    );
+  }
   if (input.notes) {
     lines.push(`The player's notes to the coach: "${input.notes}".`);
-    lines.push(
-      "If the notes describe which player they are (e.g. a shirt colour), analyse that player."
-    );
   }
   if (input.focusShots.length) {
     lines.push(
