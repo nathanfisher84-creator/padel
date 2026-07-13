@@ -110,6 +110,39 @@ export async function POST(
     );
   }
 
+  // Validity gate failed: the footage isn't reviewable padel. Deliver the
+  // explanation instead of a review and RETURN the credit — detaching the
+  // payment makes it an unused credit again, so the player can re-upload
+  // the right video at no cost.
+  if (result.rejectedReason) {
+    const message = [
+      `I couldn't review this video: ${result.rejectedReason}`,
+      "Your review credit has NOT been used — it's back on your dashboard, so you can upload the right video whenever you're ready.",
+      "For the best analysis, film from behind your side of the court (landscape), keep all four players in frame, and include at least a few minutes of play.",
+      "— Nova (AI coach)",
+    ].join("\n\n");
+    try {
+      await db.$transaction([
+        db.feedback.create({
+          data: {
+            submissionId: submission.id,
+            content: redactContact(message),
+          },
+        }),
+        db.videoSubmission.update({
+          where: { id: submission.id },
+          data: { status: SubmissionStatus.REVIEWED, paymentId: null },
+        }),
+      ]);
+    } catch (err) {
+      if ((err as { code?: string })?.code === "P2002") {
+        return NextResponse.json({ ok: true, alreadyReviewed: true });
+      }
+      throw err;
+    }
+    return NextResponse.json({ ok: true, rejected: true });
+  }
+
   try {
     await db.$transaction([
       db.feedback.create({

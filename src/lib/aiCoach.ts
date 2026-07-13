@@ -318,6 +318,12 @@ export type AiReviewResult = {
   content: string;
   /** Timestamped notes to pin on the analysis player. */
   comments: AiComment[];
+  /**
+   * Set when the validity gate failed: the footage isn't reviewable padel
+   * (wrong sport, empty court, unusably short). The caller should return the
+   * player's credit instead of delivering a normal review.
+   */
+  rejectedReason?: string;
 };
 
 export type AiReviewInput = {
@@ -349,6 +355,8 @@ const MIME_BY_EXT: Record<string, string> = {
  * inventory rather than fall back on generic advice.
  */
 type AnalysisJson = {
+  reviewable: boolean;
+  rejectionReason: string;
   inventory: string;
   level: string;
   summary: string;
@@ -362,6 +370,8 @@ type AnalysisJson = {
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
+    reviewable: { type: "BOOLEAN" },
+    rejectionReason: { type: "STRING" },
     inventory: { type: "STRING" },
     level: { type: "STRING" },
     summary: { type: "STRING" },
@@ -409,8 +419,11 @@ const RESPONSE_SCHEMA = {
       },
     },
   },
-  // Inventory and level first: the generation order IS the analysis order.
+  // Validity gate, then inventory and level, before any coaching: the
+  // generation order IS the analysis order.
   propertyOrdering: [
+    "reviewable",
+    "rejectionReason",
     "inventory",
     "level",
     "summary",
@@ -420,7 +433,17 @@ const RESPONSE_SCHEMA = {
     "drills",
     "comments",
   ],
-  required: ["inventory", "level", "summary", "strengths", "improvements", "drills", "comments"],
+  required: [
+    "reviewable",
+    "rejectionReason",
+    "inventory",
+    "level",
+    "summary",
+    "strengths",
+    "improvements",
+    "drills",
+    "comments",
+  ],
 } as const;
 
 function buildReviewPrompt(input: AiReviewInput): string {
@@ -462,7 +485,20 @@ function buildReviewPrompt(input: AiReviewInput): string {
   }
   lines.push(
     "",
-    "WORK IN TWO STAGES.",
+    "WORK IN STAGES.",
+    "",
+    "STAGE 0 — VALIDITY GATE. First confirm this is reviewable padel footage:",
+    "an enclosed padel court (glass/mesh walls) with actual play or padel",
+    "drills visible, and enough usable footage to coach from. If it is NOT —",
+    "wrong sport, no sport at all, an empty court, or footage so short/unclear",
+    "that honest coaching is impossible — set reviewable=false and write",
+    "rejectionReason: 1-2 friendly sentences addressed to the player saying",
+    "what the video actually shows and what to upload instead. In that case",
+    "leave every array empty and every other string empty, and STOP — do not",
+    "invent padel feedback for non-padel footage. Imperfect-but-usable padel",
+    "footage (poor angle, amateur play) IS reviewable — note limitations in",
+    "the summary instead of rejecting. If reviewable, set reviewable=true and",
+    "rejectionReason to an empty string.",
     "",
     "STAGE 1 — INVENTORY (evidence gathering). Watch the whole video and write",
     "a factual inventory of what happened BEFORE forming any coaching opinion:",
@@ -711,6 +747,16 @@ export async function generateAiReview(
     analysis = JSON.parse(text) as AnalysisJson;
   } catch {
     throw new Error("The model returned malformed analysis JSON.");
+  }
+
+  if (analysis.reviewable === false) {
+    return {
+      content: "",
+      comments: [],
+      rejectedReason:
+        analysis.rejectionReason?.trim() ||
+        "This video doesn't appear to show padel play, so it can't be reviewed.",
+    };
   }
 
   return {
