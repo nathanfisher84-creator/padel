@@ -5,31 +5,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Racquet-club professional palette: pine/club greens, warm bone
-        // neutrals, cream background and a padel-ball chartreuse accent.
-        // `court` is the brand green scale, `ball` the accent, and `slate`
-        // is overridden with warm stone greys so the whole UI inherits it.
+        // Boutique racquet-club palette: dusty rose brand tones over warm
+        // bone neutrals and a cream background, with a champagne-gold
+        // accent. `court` is the brand rose scale, `ball` the gold accent,
+        // and `slate` is overridden with warm stone greys so the whole UI
+        // inherits it.
         court: {
-          50: "#f1f7f2",
-          100: "#e0ede3",
-          200: "#c2dbc9",
-          300: "#9ac2a7",
-          400: "#6da583",
-          500: "#4b8765",
-          600: "#35704f",
-          700: "#2a5a40",
-          800: "#234a36",
-          900: "#1d3d2d",
-          950: "#10241a",
+          50: "#fbf4f5",
+          100: "#f7e8ea",
+          200: "#f0d4d8",
+          300: "#e3b4bc",
+          400: "#d18d99",
+          500: "#bc6a7a",
+          600: "#a45162",
+          700: "#884050",
+          800: "#713744",
+          900: "#60303b",
+          950: "#38181f",
         },
         ball: {
-          300: "#e6ef86",
-          400: "#dce75f",
-          500: "#cfe23f",
-          // 600 is used only as text on light surfaces; darkened from #7c8f0e
-          // to clear WCAG AA (~6:1 on white / cream). The chartreuse accent
+          300: "#eedcb2",
+          400: "#e4ca90",
+          500: "#d9b873",
+          // 600 is used only as text on light surfaces; dark bronze keeps
+          // WCAG AA (~6:1 on white / cream). The champagne accent
           // background stays ball-500.
-          600: "#5c6a0c",
+          600: "#7d6234",
         },
         slate: {
           50: "#f7f6f1",

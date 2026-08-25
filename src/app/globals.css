@@ -8,9 +8,9 @@ body {
 }
 
 @layer base {
-  /* Playfair Display: a high-contrast serif for headlines gives the
+  /* Fraunces: a soft, high-contrast serif for headlines gives the
      marketplace an editorial, premium register — the "considered" voice,
-     paired with Inter for everything else. */
+     paired with Archivo for everything else. */
   h1,
   h2,
   h3,
@@ -47,12 +47,12 @@ body {
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
   }
-  /* Section labels: wide-tracked uppercase Inter — a refined editorial
+  /* Section labels: wide-tracked uppercase Archivo — a refined editorial
      kicker above headings. Used for eyebrows across the site. */
   .eyebrow {
     @apply text-xs font-semibold uppercase tracking-[0.2em];
   }
-  /* Numeric/data spans (prices, counts) — Inter with lining, tabular
+  /* Numeric/data spans (prices, counts) — Archivo with lining, tabular
      figures so columns of numbers align cleanly. */
   .stat {
     @apply tabular-nums;

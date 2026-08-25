@@ -110,12 +110,12 @@ export function PlayerTagger({
     const px = x * visible.width;
     const py = y * visible.height;
     const r = Math.max(18, visible.width * 0.035);
-    ctx.strokeStyle = "#cfe23f";
+    ctx.strokeStyle = "#d9b873";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.ellipse(px, py, r, r * 1.6, 0, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = "#cfe23f";
+    ctx.fillStyle = "#d9b873";
     ctx.beginPath();
     ctx.arc(px, py, 3, 0, Math.PI * 2);
     ctx.fill();

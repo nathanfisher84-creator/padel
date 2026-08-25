@@ -1,0 +1,25 @@
+<!-- @dsCard group="Patterns" -->
+<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet"><style>
+:root{--court-600:#a45162;--court-950:#38181f;--ball-400:#e4ca90;--ball-500:#d9b873;--slate-200:#e3dfd2;--slate-500:#7f7867;--slate-600:#665f50;--slate-900:#23201a;--cream:#f8f4e9;--white:#fffefa}
+*{margin:0;box-sizing:border-box}
+body{font-family:'Archivo',system-ui,sans-serif;background:var(--cream);color:var(--slate-900);padding:32px;-webkit-font-smoothing:antialiased}
+.mono{font-family:'Spline Sans Mono',ui-monospace,monospace}
+.eyebrow{font-family:'Spline Sans Mono',monospace;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.18em}
+.card{border:1px solid var(--slate-200);background:var(--white);border-radius:12px;padding:24px;box-shadow:0 1px 2px rgba(35,32,26,.05)}
+code{font-family:'Spline Sans Mono',monospace;font-size:12.5px;background:#f1ead7;border-radius:4px;padding:1px 5px}
+li{margin:6px 0;font-size:14px;line-height:1.55;color:var(--slate-600)}
+</style></head><body>
+<p class="eyebrow" style="color:var(--court-600)">3D scenes</p>
+<h2 style="font-size:22px;margin:8px 0 16px">Live WebGL objects — three.js via react-three-fiber</h2>
+<div class="card" style="max-width:640px">
+<p style="font-size:14px;line-height:1.6;color:var(--slate-600);margin-bottom:12px">
+The hero's padel ball is a real 3D object (<code>src/components/three/PadelBall3D.tsx</code>): a felt sphere in champagne (<code>ball-400</code>) with crossed rose seams (<code>court-600</code>), lit in the site's own palette. Use it as the template for any new 3D scene.</p>
+<ul style="padding-left:18px">
+<li>Mount with <code>next/dynamic</code> + <code>ssr:false</code> — three.js stays out of the server bundle and the critical path.</li>
+<li>Decorative scenes are <code>aria-hidden</code> with <code>pointer-events-none</code>, and hidden on small screens (<code>hidden lg:block</code>) to spare phone batteries.</li>
+<li>Gate motion behind <code>prefers-reduced-motion</code> (see <code>usePrefersReducedMotion</code>): reduced ⇒ <code>frameloop="demand"</code>, no animation.</li>
+<li>Cap pixel ratio at <code>dpr={[1,2]}</code>; light scenes with palette colors (cream ambient, blush fill) so objects sit in the page.</li>
+<li>Build geometry procedurally (sphere, torus, lathe) before reaching for model files; keep materials <code>meshStandardMaterial</code> with palette hexes.</li>
+</ul>
+</div>
+</body></html>

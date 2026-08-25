@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Archivo, Fraunces } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 import { getSession } from "@/lib/auth";
 import { StopImpersonatingButton } from "@/components/StopImpersonatingButton";
 
-// Inter carries every word of UI and body copy — highly legible, neutral,
-// modern. Playfair Display is the editorial voice: high-contrast serif
-// headlines that give the marketplace a considered, premium register.
-const inter = Inter({
+// Archivo carries every word of UI and body copy — a sturdy, professional
+// grotesque with real character at display weights. Fraunces is the
+// editorial voice: a soft, high-contrast serif that gives the marketplace
+// a considered, premium register. Both are variable fonts (one file each).
+const archivo = Archivo({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
-const playfair = Playfair_Display({
+const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
-  // Only the weights the headings actually use (h1 700, h2/h3 600).
-  weight: ["600", "700"],
+  axes: ["opsz"],
 });
 
 const orgJsonLd = {
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#10241a",
+  themeColor: "#38181f",
 };
 
 export default async function RootLayout({
@@ -65,7 +65,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} font-sans`}>
+      <body className={`${archivo.variable} ${fraunces.variable} font-sans`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -107,8 +107,8 @@ export default async function RootLayout({
             <div>
               <p className="flex items-center gap-2 text-lg font-bold text-white">
                 <svg viewBox="0 0 64 64" className="h-6 w-6" aria-hidden>
-                  <circle cx="32" cy="32" r="27" fill="#cfe23f" />
-                  <path d="M13 15 C30 26 34 38 51 49" stroke="#10241a" strokeWidth="6.5" fill="none" strokeLinecap="round" />
+                  <circle cx="32" cy="32" r="27" fill="#d9b873" />
+                  <path d="M13 15 C30 26 34 38 51 49" stroke="#38181f" strokeWidth="6.5" fill="none" strokeLinecap="round" />
                   <path d="M51 15 C34 26 30 38 13 49" stroke="#fffefa" strokeWidth="6.5" fill="none" strokeLinecap="round" />
                 </svg>
                 <span>

@@ -1,16 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(useGSAP);
 
+// The 3D ball is decorative and WebGL-only: load it client-side after the
+// hero paints, so three.js stays out of the critical path entirely.
+const PadelBall3D = dynamic(
+  () => import("@/components/three/PadelBall3D").then((m) => m.PadelBall3D),
+  { ssr: false }
+);
+
 /**
  * Full-bleed, image-forward hero: two padel panels behind a huge stacked
- * Playfair headline and a rectangular call to action — the reference's
- * dramatic split hero, rendered in our court-green palette.
+ * serif headline and a rectangular call to action — the reference's
+ * dramatic split hero, rendered in the rose/wine club palette, with a
+ * live 3D padel ball drifting over the corner.
  */
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
@@ -74,6 +83,10 @@ export function Hero() {
           backgroundSize: "56px 56px",
         }}
       />
+
+      {/* Live 3D padel ball, floating over the hero's lower-right corner.
+          Desktop only: phones skip the WebGL download and battery cost. */}
+      <PadelBall3D className="pointer-events-none absolute bottom-[6%] right-[4%] z-10 hidden h-56 w-56 lg:block xl:h-72 xl:w-72" />
 
       <div className="relative mx-auto flex min-h-[80vh] max-w-3xl flex-col items-center justify-center px-4 py-24 text-center">
         <p data-hero className="eyebrow text-ball-400">

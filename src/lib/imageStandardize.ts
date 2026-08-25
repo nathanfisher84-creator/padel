@@ -15,7 +15,7 @@ const STUDIO_PROMPT = [
   "real face, likeness, hair, skin tone, age and expression EXACTLY the same — do not",
   "change their identity or add or remove features.",
   "Replace the background with a smooth, softly-lit dark forest-green studio backdrop",
-  "(deep pine green around #10241a with a subtle lighter green vignette).",
+  "(deep wine around #38181f with a subtle lighter rose vignette).",
   "Frame it as a centred head-and-shoulders portrait, 1:1 square aspect ratio, the face",
   "in the upper-middle, with even, flattering studio lighting and gentle depth of field.",
   "Dress them in a plain, solid-colour athletic top with NO logos, text, numbers or brand",
